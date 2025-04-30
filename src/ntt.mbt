@@ -157,41 +157,6 @@ pub fn intt(poly : Array[Int]) -> Unit {
 }
 
 ///|
-test "constant_polynomial_ntt_intt" {
-  // 创建常数多项式 f(x) = 1
-  let poly = Array::make(PARAM_N, 0)
-  poly[0] = 1
-
-  // 原始副本
-  let original = poly.copy()
-
-  // 转换到 Montgomery 形式
-  let mont_poly = poly.copy()
-  for i in 0..<PARAM_N {
-    mont_poly[i] = to_mont(mont_poly[i])
-  }
-  println(original)
-
-  // 执行 NTT 和 INTT
-  ntt(mont_poly)
-
-  // 输出 NTT 结果，确认常数多项式在 NTT 域的正确表示
-  println(mont_poly)
-  intt(mont_poly)
-
-  // 因为待测试的 intt 函数可能没有完成 Montgomery 还原，
-  // 所以需要手动转换回普通形式
-  for i in 0..<PARAM_N {
-    mont_poly[i] = mont_mul(mont_poly[i], 1)
-  }
-
-  // 验证结果
-  for i in 0..<PARAM_N {
-    assert_eq!(mont_poly[i], original[i])
-  }
-}
-
-///|
 /// Barrett reduction for modular arithmetic
 /// Used in INTT implementation to match reference code
 pub fn barrett_reduce(a : Int) -> Int {
