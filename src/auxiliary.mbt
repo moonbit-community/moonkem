@@ -34,7 +34,7 @@ let rc : Array[UInt64] = [
 ]
 
 ///|
-fn toUInt64(bytes : ByteArray) -> UInt64 {
+pub fn toUInt64(bytes : ByteArray) -> UInt64 {
   let mut result : UInt64 = 0
   for i = 0; i < 8; i = i + 1 {
     let part = bytes[i].to_uint64() << (8 * i)
@@ -44,52 +44,26 @@ fn toUInt64(bytes : ByteArray) -> UInt64 {
 }
 
 ///|
-test "toUInt64/zero" {
-  let bytes = Array::make(8, b'\x00')
-  inspect!(toUInt64(bytes), content="0")
-}
-
-///|
-test "toUInt64/basic" {
-  let bytes = [
-    b'\x01', b'\x02', b'\x03', b'\x04', b'\x05', b'\x06', b'\x07', b'\x08',
-  ]
-  // Should represent 0x0807060504030201 in little-endian
-  inspect!(toUInt64(bytes), content="578437695752307201")
-}
-
-///|
-fn fromUInt64(x : UInt64) -> ByteArray {
+pub fn fromUInt64(x : UInt64) -> ByteArray {
   let out : ByteArray = Array::make(8, 0)
   for i = 0; i < 8; i = i + 1 {
     out[i] = ((x >> (8 * i)) & 0xFF).to_byte()
   }
   out
 }
-///|
-test "fromUInt64/basic" {
-  let input : UInt64 = 578437695752307201 // 0x0807060504030201
-  let expected = [
-    b'\x01', b'\x02', b'\x03', b'\x04', b'\x05', b'\x06', b'\x07', b'\x08',
-  ]
-  let result = fromUInt64(input)
-  for i = 0; i < 8; i = i + 1 {
-    inspect!(result[i], content="\{expected[i]}")
-  }
-}
 
 ///|
-fn rotl(x : UInt64, n : Int) -> UInt64 {
+pub fn rotl(x : UInt64, n : Int) -> UInt64 {
   ((x << n) | (x >> (64 - n))) & 0xFFFFFFFFFFFFFFFF
 }
 
 ///|
-fn bitwise_not(x : UInt64) -> UInt64 {
+pub fn bitwise_not(x : UInt64) -> UInt64 {
   return x ^ ALL_ONES_64
 }
 
 ///|
-fn keccakF(state : Array[UInt64]) -> Unit {
+pub fn keccakF(state : Array[UInt64]) -> Unit {
   for round in 0..<nr {
     // ——— θ 步 ———
     let c = Array::new(capacity=5)
@@ -143,7 +117,7 @@ fn keccakF(state : Array[UInt64]) -> Unit {
 }
 
 ///|
-fn keccakPad(msg : ByteArray, rateBytes : Int, padByte : Byte) -> ByteArray {
+pub fn keccakPad(msg : ByteArray, rateBytes : Int, padByte : Byte) -> ByteArray {
   // 填充规则：在 msg 后加 0x06，末尾字节 ^ 0x80，扩至整块
   let msgLen = msg.length()
   let padLen = rateBytes - msgLen % rateBytes
@@ -156,7 +130,7 @@ fn keccakPad(msg : ByteArray, rateBytes : Int, padByte : Byte) -> ByteArray {
 }
 
 ///|
-fn keccakSponge(
+pub fn keccakSponge(
   msg : ByteArray,
   rateBytes : Int,
   outLen : Int,
