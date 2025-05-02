@@ -122,6 +122,9 @@ pub fn ntt(poly : Array[Int]) -> Unit {
 ///|
 /// Performs inverse NTT transform and conversion from Montgomery form
 /// Input: polynomial in NTT representation (bitreversed), Output: standard coefficient representation
+///|
+/// Performs inverse NTT transform and conversion from Montgomery form
+/// Input: polynomial in NTT representation (bitreversed), Output: standard coefficient representation
 pub fn intt(poly : Array[Int]) -> Unit {
   if poly.length() != PARAM_N {
     abort("Input array must have length exactly PARAM_N")
@@ -133,13 +136,16 @@ pub fn intt(poly : Array[Int]) -> Unit {
   while len <= 128 {
     let mut start = 0
     while start < PARAM_N {
-      let zeta = zetas_inv[k] // 添加这行来定义 zeta
-      k += 1 // 递增 k
+      let zeta = zetas_inv[k]
+      k += 1
       let mut j = start
       while j < start + len {
         let t = poly[j]
         poly[j] = barrett_reduce(t + poly[j + len])
         poly[j + len] = t - poly[j + len]
+        if poly[j + len] < 0 {
+          poly[j + len] += PARAM_Q
+        }
         poly[j + len] = mont_mul(zeta, poly[j + len])
         j += 1
       }
@@ -147,10 +153,10 @@ pub fn intt(poly : Array[Int]) -> Unit {
     }
     len = len << 1
   }
-  // 标准化因子 (n^-1 mod q)
-  let n_inv = zetas_inv[127] // zetas_inv[127]
 
-  // 将结果乘以 n^-1 并转换回标准形式
+  // 标准化因子 (n^-1 mod q)
+  // Kyber实现中，zetas_inv[127] 已经包含了从蒙哥马利域转换回普通域的因子
+  let n_inv = zetas_inv[127]
   for j in 0..<PARAM_N {
     poly[j] = mont_mul(poly[j], n_inv)
   }
@@ -249,4 +255,77 @@ pub fn pow_float(x : Float, n : Int) -> Float {
   } else {
     return half * half * x
   }
+}
+
+///|
+/// 测试 NTT 和 INTT 的可逆性
+/// 验证对一个多项式进行 NTT 然后 INTT 后能否恢复原始数值
+test "ntt_intt_invertibility" {
+  // 1. 创建几种不同类型的多项式进行测试
+
+  // 测试用例1：常数多项式 f(x) = 1
+  let constant_poly = Array::make(PARAM_N, 0)
+  constant_poly[0] = 1
+  check_ntt_intt_invertibility("常数多项式", constant_poly)
+
+  // 测试用例2：线性多项式 f(x) = 1 + 2x
+  let linear_poly = Array::make(PARAM_N, 0)
+  linear_poly[0] = 1
+  linear_poly[1] = 2
+  check_ntt_intt_invertibility("线性多项式", linear_poly)
+
+  // 测试用例3：随机多项式，系数在 [0, q-1] 范围内
+  let random_poly = Array::make(PARAM_N, 0)
+  for i in 0..<PARAM_N {
+    random_poly[i] = (i * 97 + 101) % PARAM_Q // 简单的伪随机函数
+  }
+  check_ntt_intt_invertibility("随机多项式", random_poly)
+
+  // 测试用例4：边界值多项式（全部为 q-1）
+  let boundary_poly = Array::make(PARAM_N, PARAM_Q - 1)
+  check_ntt_intt_invertibility("边界值多项式", boundary_poly)
+}
+
+///|
+/// 检查多项式经过 NTT 和 INTT 变换后是否恢复为原始值
+fn check_ntt_intt_invertibility(
+  test_name : String,
+  original : Array[Int]
+) -> Unit {
+  println("测试 " + test_name + " 的 NTT/INTT 可逆性...")
+
+  // 1. 创建原始多项式的副本
+  let poly = original.copy()
+
+  // 2. 转换到 Montgomery 形式
+  poly_to_mont(poly)
+
+  // 3. 执行 NTT 变换
+  ntt(poly)
+
+  // 4. 执行 INTT 变换（内含从 Montgomery 到普通域转换）
+  intt(poly)
+
+  // 5. 直接验证结果是否与原始多项式相同，不再调用 mont_mul(poly, 1)
+  let mut success = true
+  for i in 0..<PARAM_N {
+    if poly[i] != original[i] {
+      success = false
+      println(
+        "失败位置: index=" +
+        i.to_string() +
+        ", 期望值=" +
+        original[i].to_string() +
+        ", 实际值=" +
+        poly[i].to_string(),
+      )
+      break
+    }
+  }
+  if success {
+    println(test_name + " NTT/INTT 测试通过！✓")
+  } else {
+    println(test_name + " NTT/INTT 测试失败！✗")
+  }
+  println("")
 }

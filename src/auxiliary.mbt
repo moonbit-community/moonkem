@@ -186,7 +186,7 @@ pub fn shake128(msg : ByteArray, outLen : Int) -> ByteArray {
 
 ///|
 /// SHAKE256：可变输出（比如 PRF、KDF）
-fn shake256(msg : ByteArray, outLen : Int) -> ByteArray {
+pub fn shake256(msg : ByteArray, outLen : Int) -> ByteArray {
   keccakSponge(msg, 136, outLen, 0x1F)
 }
 
@@ -198,20 +198,136 @@ pub fn h(s : ByteArray) -> ByteArray {
 
 ///|
 /// J(s) := SHAKE256(s, 32)
-fn j(s : ByteArray) -> ByteArray {
+pub fn j(s : ByteArray) -> ByteArray {
   shake256(s, 32)
 }
 
 ///|
 /// G(c) := SHA3-512(c) = (a, b)
-fn g(c : ByteArray) -> (ByteArray, ByteArray) {
+pub fn g(c : ByteArray) -> (ByteArray, ByteArray) {
   let full = sha3_512(c)
   full.split_at(31)
 }
 
 ///| PRF_η(s, b) := SHAKE256(s || b, 64 * η)
-fn prf(eta : Int, s : ByteArray, b : Byte) -> ByteArray {
+pub fn prf(eta : Int, s : ByteArray, b : Byte) -> ByteArray {
   let input = s.copy()
   input.push(b)
   shake256(input, 64 * eta)
+}
+
+///|
+/// 连接两个字节数组
+/// @param a 第一个字节数组
+/// @param b 第二个字节数组
+/// @return 合并后的字节数组
+pub fn concat_bytes(a : ByteArray, b : ByteArray) -> ByteArray {
+  let result = a.copy()
+  result.append(b)
+  result
+}
+
+///|
+/// 比较两个字节数组是否相等（常时间比较）
+/// @param a 第一个字节数组
+/// @param b 第二个字节数组
+/// @return 是否相等
+pub fn constant_time_compare(a : ByteArray, b : ByteArray) -> Bool {
+  // 如果长度不同，立即返回false
+  if a.length() != b.length() {
+    return false
+  }
+
+  // 初始化差异变量为0字节
+  let mut diff : Byte = 0
+
+  // 常时间比较：遍历所有字节并累积差异（不会在找到第一个不同处就返回）
+  for i = 0; i < a.length(); i = i + 1 {
+    // 使用按位异或检测差异，并用按位或累积
+    diff = diff | (a[i] ^ b[i])
+  }
+
+  // 只有当所有字节都相同（即diff为0）时才返回true
+  return diff == 0
+}
+
+///|
+/// 字节数组转Int数组（用于多项式表示）
+/// @param bytes 输入字节数组
+/// @param mod_value 模数值（如ML-KEM中的q=3329）
+/// @return 输出Int数组，每个元素是小于mod_value的整数
+pub fn bytes_to_ints(bytes : ByteArray, mod_value : Int) -> Array[Int] {
+  let result = Array::new()
+
+  // 确定我们能从输入字节中提取多少个整数
+  // 在ML-KEM中，通常每12位表示一个多项式系数（因为q=3329需要最多12位）
+  let bits_per_int = bit_length(mod_value - 1)
+  let total_bits = bytes.length() * 8
+  let total_ints = total_bits / bits_per_int
+
+  // 临时变量，用于跨字节边界累积位
+  let mut bit_pos = 0
+  let mut current_byte_idx = 0
+  let mut current_byte = bytes[0].to_int()
+  for _ in 0..<total_ints {
+    let mut value = 0
+    let mut bits_collected = 0
+
+    // 收集足够的位以形成一个多项式系数
+    while bits_collected < bits_per_int {
+      // 当前字节中还可用的位数
+      let bits_remaining_in_byte = 8 - bit_pos
+
+      // 确定要从当前字节中获取多少位
+      let bits_to_read = @math.minimum(
+        bits_remaining_in_byte,
+        bits_per_int - bits_collected,
+      )
+
+      // 从当前字节读取位
+      // 首先右移移除不需要的低位，然后用掩码提取需要的位
+      let mask = (1 << bits_to_read) - 1
+      let extracted_bits = (current_byte >> bit_pos) & mask
+
+      // 将这些位添加到当前值中
+      value = value | (extracted_bits << bits_collected)
+      bits_collected = bits_collected + bits_to_read
+
+      // 更新位位置
+      bit_pos = bit_pos + bits_to_read
+
+      // 如果已经读完当前字节，移到下一个字节
+      if bit_pos == 8 {
+        bit_pos = 0
+        current_byte_idx = current_byte_idx + 1
+        if current_byte_idx < bytes.length() {
+          current_byte = bytes[current_byte_idx].to_int()
+        }
+      }
+    }
+
+    // 应用模数
+    value = value % mod_value
+
+    // 添加到结果数组
+    result.push(value)
+  }
+  return result
+}
+
+///|
+/// 计算整数的二进制位长度
+/// @param n 一个整数
+/// @return 表示该整数所需的最小位数
+pub fn bit_length(n : Int) -> Int {
+  if n == 0 {
+    return 1 // 0需要1位表示
+  }
+  let mut count = 0
+  let mut value = n
+  while value > 0 {
+    count = count + 1
+    value = value >> 1
+  }
+  return count
 }
