@@ -4,7 +4,7 @@ test "fromUInt64/basic" {
   let expected = [
     b'\x01', b'\x02', b'\x03', b'\x04', b'\x05', b'\x06', b'\x07', b'\x08',
   ]
-  let result = fromUInt64(input)
+  let result = from_uint64(input)
   for i = 0; i < 8; i = i + 1 {
     inspect!(result[i], content="\{expected[i]}")
   }
@@ -13,7 +13,7 @@ test "fromUInt64/basic" {
 ///|
 test "toUInt64/zero" {
   let bytes = Array::make(8, b'\x00')
-  inspect!(toUInt64(bytes), content="0")
+  inspect!(to_uint64(bytes), content="0")
 }
 
 ///|
@@ -22,7 +22,7 @@ test "toUInt64/basic" {
     b'\x01', b'\x02', b'\x03', b'\x04', b'\x05', b'\x06', b'\x07', b'\x08',
   ]
   // Should represent 0x0807060504030201 in little-endian
-  inspect!(toUInt64(bytes), content="578437695752307201")
+  inspect!(to_uint64(bytes), content="578437695752307201")
 }
 
 ///|
@@ -31,7 +31,7 @@ test "fromUInt64/basic" {
   let expected = [
     b'\x01', b'\x02', b'\x03', b'\x04', b'\x05', b'\x06', b'\x07', b'\x08',
   ]
-  let result = fromUInt64(input)
+  let result = from_uint64(input)
   for i = 0; i < 8; i = i + 1 {
     inspect!(result[i], content="\{expected[i]}")
   }
@@ -40,7 +40,7 @@ test "fromUInt64/basic" {
 ///|
 test "toUInt64/zero" {
   let bytes = Array::make(8, b'\x00')
-  inspect!(toUInt64(bytes), content="0")
+  inspect!(to_uint64(bytes), content="0")
 }
 
 ///|

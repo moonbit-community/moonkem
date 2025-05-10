@@ -34,7 +34,7 @@ let rc : Array[UInt64] = [
 ]
 
 ///|
-pub fn toUInt64(bytes : ByteArray) -> UInt64 {
+pub fn to_uint64(bytes : ByteArray) -> UInt64 {
   let mut result : UInt64 = 0
   for i = 0; i < 8; i = i + 1 {
     let part = bytes[i].to_uint64() << (8 * i)
@@ -44,7 +44,7 @@ pub fn toUInt64(bytes : ByteArray) -> UInt64 {
 }
 
 ///|
-pub fn fromUInt64(x : UInt64) -> ByteArray {
+pub fn from_uint64(x : UInt64) -> ByteArray {
   let out : ByteArray = Array::make(8, 0)
   for i = 0; i < 8; i = i + 1 {
     out[i] = ((x >> (8 * i)) & 0xFF).to_byte()
@@ -144,7 +144,7 @@ pub fn keccakSponge(
       for j = 0; j < 8; j = j + 1 {
         laneBytes[j] = padded[offset + i * 8 + j]
       }
-      let lane = toUInt64(laneBytes)
+      let lane = to_uint64(laneBytes)
       state[i] = state[i] ^ lane
     }
     keccakF(state)
@@ -152,7 +152,7 @@ pub fn keccakSponge(
   let output : ByteArray = Array::new()
   while output.length() < outLen {
     for i = 0; i < rateBytes / 8; i = i + 1 {
-      let bytes = fromUInt64(state[i])
+      let bytes = from_uint64(state[i])
       for j = 0; j < 8; j = j + 1 {
         if output.length() < outLen {
           output.push(bytes[j])
