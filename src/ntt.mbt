@@ -21,7 +21,7 @@ pub const PARAM_ETA2 : Int = 2 // KYBER_ETA2
 
 // Montgomery 相关常量
 ///| Montgomery 规约常量 -q^(-1) mod 2^16
-pub const QINV : Int = 3327
+pub const QINV : Int = 62209
 
 ///| Montgomery form constant R^2 = 2^32 mod q
 pub const R2 : Int = 1353
@@ -56,18 +56,20 @@ let zetas_inv : Array[Int] = [
 ]
 
 ///|
-/// Performs Montgomery reduction-based modular multiplication
-/// Montgomery multiplication: (a * b * R^(-1)) mod q, where R = 2^16
+/// Montgomery multiplication:
+/// returns (a * b * R^(-1)) mod q    where R = 2^16
 pub fn mont_mul(a : Int, b : Int) -> Int {
-  let t = (a * b) & 0xFFFF // Low 16 bits
-  let u = (t * QINV) & 0xFFFF // t * QINV mod 2^16
-  let v = t + u * PARAM_Q // t + u * q
-  let r = v >> 16 // v / 2^16
-  if r >= PARAM_Q {
-    return r - PARAM_Q
-  } else {
-    return r
-  }
+  // 1. 计算 32-bit 全乘积   t = a · b   (0 … 3329^2  < 2^23，安全)
+  let t : Int = a * b // **不要再做 &0xFFFF 截断**
+
+  // 2. m = (t · QINV)  (mod 2^16)   —— 只保留低 16 位
+  let m : Int = (t * QINV) & 0xFFFF
+
+  // 3. u = (t + m·q) / 2^16         —— 右移 16 位，相当于乘 R^(-1)
+  let u : Int = (t + m * PARAM_Q) >> 16
+
+  // 4. 若结果 ≥ q 再减一次 q，确保落在 [0, q-1]
+  return if u >= PARAM_Q { u - PARAM_Q } else { u }
 }
 
 ///|
@@ -93,15 +95,12 @@ pub fn ntt(poly : Array[Int]) -> Unit {
   }
 
   // 按照 Kyber 参考实现的 NTT 算法精确实现
-  let mut k = 1
-  let mut len = 128
-  while len >= 2 {
-    let mut start = 0
-    while start < PARAM_N {
+  let mut k = 0
+  for len = 128; len >= 2; len = len >> 1 {
+    for start = 0; start < PARAM_N; start = start + 2 * len {
       let zeta = zetas[k]
       k += 1
-      let mut j = start
-      while j < start + len {
+      for j = start; j < start + len; j = j + 1 {
         let t = mont_mul(zeta, poly[j + len])
         poly[j + len] = poly[j] - t
         if poly[j + len] < 0 {
@@ -111,11 +110,8 @@ pub fn ntt(poly : Array[Int]) -> Unit {
         if poly[j] >= PARAM_Q {
           poly[j] -= PARAM_Q
         }
-        j += 1
       }
-      start = start + 2 * len
     }
-    len = len >> 1
   }
 }
 
@@ -132,26 +128,21 @@ pub fn intt(poly : Array[Int]) -> Unit {
 
   // 按照 Kyber 参考实现精确实现的 INTT 算法
   let mut k = 0
-  let mut len = 2
-  while len <= 128 {
-    let mut start = 0
-    while start < PARAM_N {
+  for len = 2; len <= 128; len = len << 1 {
+    for start = 0; start < PARAM_N; start = start + 2 * len {
       let zeta = zetas_inv[k]
       k += 1
-      let mut j = start
-      while j < start + len {
-        let t = poly[j]
-        poly[j] = barrett_reduce(t + poly[j + len])
-        poly[j + len] = t - poly[j + len]
-        if poly[j + len] < 0 {
-          poly[j + len] += PARAM_Q
+      for j = start; j < start + len; j = j + 1 {
+        let u = poly[j]
+        let v = poly[j + len]
+        poly[j] = barrett_reduce(u + v)
+        let mut t = u - v
+        if t < 0 {
+          t += PARAM_Q
         }
-        poly[j + len] = mont_mul(zeta, poly[j + len])
-        j += 1
+        poly[j + len] = mont_mul(zeta, t)
       }
-      start = start + 2 * len
     }
-    len = len << 1
   }
 
   // 标准化因子 (n^-1 mod q)
@@ -166,16 +157,15 @@ pub fn intt(poly : Array[Int]) -> Unit {
 /// Barrett reduction for modular arithmetic
 /// Used in INTT implementation to match reference code
 pub fn barrett_reduce(a : Int) -> Int {
-  let v = (a.to_float() * 20159.0 / 67108864.0).to_int() // v = ((a<<26)/q+0.5)>>26
-  let t = v * PARAM_Q
-  let r = a - t
-  if r >= PARAM_Q {
-    return r - PARAM_Q
-  }
+  let v = (a * 20159) >> 26 // v = ((a<<26)/q+0.5)>>26
+  let r = a - v * PARAM_Q
   if r < 0 {
-    return r + PARAM_Q
+    r + PARAM_Q
+  } else if r >= PARAM_Q {
+    r - PARAM_Q
+  } else {
+    r
   }
-  return r
 }
 
 ///|

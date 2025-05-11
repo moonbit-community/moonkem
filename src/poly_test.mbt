@@ -19,7 +19,6 @@ test "mod_q/basic" {
 }
 
 ///|
-///|
 test "poly_add/basic" {
   let n = common_params.n
   let q = common_params.q
