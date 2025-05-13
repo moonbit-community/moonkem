@@ -44,6 +44,44 @@ let zetas : Array[Int] = [
   403, 1026, 1143, 2150, 2775, 886, 1722, 1212, 1874, 1029, 2110, 2935, 885, 2154,
 ]
 
+///|
+pub fn sample_ntt(seed : ByteArray) -> Function {
+  let mut ctx = xof_init()
+  ctx = xof_absorb(ctx, seed)
+  let a_hat = Array::make(256, 0)
+  let mut j = 0
+  while j < 256 {
+    let (_ctx, c) = xof_squeeze(ctx, 3)
+    let d1 = c[0].to_int() + 256 * (c[1].to_int() & 0x0F)
+    let d2 = (c[1] >> 4).to_int() + 16 * c[2].to_int()
+    if d1 < PARAM_Q {
+      a_hat[j] = d1
+      j += 1
+    }
+    if j < 256 && d2 < PARAM_Q {
+      a_hat[j] = d2
+      j += 1
+    }
+  }
+  a_hat
+}
+
+///|
+pub fn sample_poly_cbd(seed : ByteArray) -> Function {
+  let b = bytes_to_bits(seed)
+  let f = Array::make(PARAM_N, 0)
+  for i = 0; i < PARAM_N; i = i + 1 {
+    let mut x = 0
+    let mut y = 0
+    let base = 2 * i * PARAM_ETA1
+    for j = 0; j < PARAM_ETA1; j = j + 1 {
+      x = x + b[base + j]
+      y = y + b[base + PARAM_ETA1 + j]
+    }
+    f[i] = mod_q(x - y, PARAM_Q)
+  }
+  f
+}
 
 ///|
 /// Computes the Number Theoretic Transform (NTT) of a polynomial. The NTT is a
@@ -151,4 +189,32 @@ test {
   let hat_f = ntt(f)
   let f2 = intt(hat_f)
   assert_eq!(f, f2)
+}
+
+///|
+pub fn multiply_ntts(f_hat : Function, g_hat : Function) -> Function {
+  let h_hat : Function = Array::make(256, 0)
+  for i = 0; i < 128; i = i + 1 {
+    let (a, b) = base_case_multiply(
+      f_hat[2 * i],
+      f_hat[2 * i + 1],
+      g_hat[2 * i],
+      g_hat[2 * i + 1],
+      zetas[i],
+    )
+    h_hat[2 * i] = a
+    h_hat[2 * i + 1] = b
+  }
+  h_hat
+}
+
+///|
+pub fn base_case_multiply(
+  a0 : Int,
+  a1 : Int,
+  b0 : Int,
+  b1 : Int,
+  gamma : Int
+) -> (Int, Int) {
+  (a0 * b0 + a1 * b1 * gamma, a0 * b1 + a1 * b0)
 }

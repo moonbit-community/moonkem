@@ -34,6 +34,13 @@ let rc : Array[UInt64] = [
 ]
 
 ///|
+struct XOF_CTX {
+  state : Array[UInt64]
+  buf : ByteArray
+  mut squeezed : Bool
+}
+
+///|
 pub fn to_uint64(bytes : ByteArray) -> UInt64 {
   let mut result : UInt64 = 0
   for i = 0; i < 8; i = i + 1 {
@@ -330,4 +337,61 @@ pub fn bit_length(n : Int) -> Int {
     value = value >> 1
   }
   return count
+}
+
+///|
+pub fn xof_init() -> XOF_CTX {
+  { state: Array::make(25, 0), buf: [], squeezed: false }
+}
+
+///|
+pub fn absorb_block(ctx : XOF_CTX) -> Unit {
+  for lane = 0; lane < 168 / 8; lane = lane + 1 {
+    let mut t : UInt64 = 0
+    for b = 0; b < 8; b = b + 1 {
+      t = t | (ctx.buf[lane * 8 + b].to_uint64() << (8 * b))
+    }
+    ctx.state[lane] = ctx.state[lane] ^ t
+  }
+  keccakF(ctx.state)
+  ctx.buf.clear()
+}
+
+///|
+pub fn xof_absorb(ctx : XOF_CTX, data : ByteArray) -> XOF_CTX {
+  for i = 0; i < data.length(); i = i + 1 {
+    ctx.buf.push(data[i])
+    if ctx.buf.length() == 168 {
+      absorb_block(ctx)
+    }
+  }
+  ctx
+}
+
+///|
+pub fn xof_squeeze(ctx : XOF_CTX, out_len : Int) -> (XOF_CTX, ByteArray) {
+  if not(ctx.squeezed) {
+    ctx.buf.push(0x1F)
+    while ctx.buf.length() < 168 - 1 {
+      ctx.buf.push(0x00)
+    }
+    ctx.buf.push(0x80)
+    absorb_block(ctx)
+    ctx.squeezed = true
+  }
+  let output : ByteArray = []
+  while output.length() < out_len {
+    for lane = 0; lane < 168 / 8; lane = lane + 1 {
+      for b = 0; b < 8; b = b + 1 {
+        if output.length() < out_len {
+          let byte : Byte = (ctx.state[lane] >> (8 * b)).to_byte() & 0xFF
+          output.push(byte)
+        }
+      }
+    }
+    if output.length() < out_len {
+      keccakF(ctx.state)
+    }
+  }
+  (ctx, output)
 }
