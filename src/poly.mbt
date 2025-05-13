@@ -6,11 +6,7 @@
 /// @param q 模数
 /// @return 模运算结果
 pub fn mod_q(a : Int, q : Int) -> Int {
-  let r = a % q
-  if r < 0 {
-    return r + q
-  }
-  r
+  (a % q + q) % q
 }
 
 ///|
@@ -81,17 +77,17 @@ pub fn poly_compress(out : ByteArray, poly : Poly, d : Int) -> Unit {
   let n = poly.length()
   let q = common_params.q
 
-  // 计算压缩因子
-  let compress_factor = (1 << d).to_float() / q.to_float()
+  // 检查输出字节长度
+  let required_length = n * d / 8
+  if out.length() < required_length {
+    abort("poly_compress: out too short")
+  }
 
-  // 临时存储压缩后的整数值
+  // 压缩到整数范围 [0, 2^d-1]
   let compressed = Array::make(n, 0)
-
-  // 执行压缩映射
   for i = 0; i < n; i = i + 1 {
     let t = mod_q(poly[i], q)
-    let scaled = (t.to_float() * compress_factor + 0.5).to_int()
-    compressed[i] = if scaled >= (1 << d) { (1 << d) - 1 } else { scaled }
+    compressed[i] = ((t << d) + (q >> 1)) / q // 四舍五入整数除法
   }
 
   // 清空输出数组
@@ -99,23 +95,17 @@ pub fn poly_compress(out : ByteArray, poly : Poly, d : Int) -> Unit {
     out[i] = 0
   }
 
-  // 改进后的位打包算法
+  // 位打包（纯整数）
   let mut bit_idx = 0
   for i = 0; i < n; i = i + 1 {
     let val = compressed[i]
     for j = 0; j < d; j = j + 1 {
-      // 计算当前位应该写入的字节和位偏移
       let byte_idx = bit_idx / 8
       let bit_pos = bit_idx % 8
-
-      // 确保不会越界
-      if byte_idx < out.length() {
-        // 设置对应的位
-        if (val & (1 << j)) != 0 {
-          out[byte_idx] = (out[byte_idx].to_int() | (1 << bit_pos)).to_byte()
-        }
+      if (val & (1 << j)) != 0 {
+        out[byte_idx] = (out[byte_idx].to_int() | (1 << bit_pos)).to_byte()
       }
-      bit_idx = bit_idx + 1
+      bit_idx += 1
     }
   }
 }
@@ -129,30 +119,23 @@ pub fn poly_decompress(poly : Poly, in_bytes : ByteArray, d : Int) -> Unit {
   let n = poly.length()
   let q = common_params.q
 
-  // 计算解压缩因子
-  let decompress_factor = q.to_float() / (1 << d).to_float()
-
-  // 改进后的逐位读取算法
+  // 检查输入字节长度
+  let required_length = n * d / 8
+  if in_bytes.length() < required_length {
+    abort("poly_decompress: input too short")
+  }
   let mut bit_idx = 0
   for i = 0; i < n; i = i + 1 {
     let mut val = 0
     for j = 0; j < d; j = j + 1 {
-      // 计算当前位所在的字节和位偏移
       let byte_idx = bit_idx / 8
       let bit_pos = bit_idx % 8
-
-      // 确保不会越界
-      if byte_idx < in_bytes.length() {
-        // 读取对应的位
-        if (in_bytes[byte_idx].to_int() & (1 << bit_pos)) != 0 {
-          val = val | (1 << j)
-        }
+      if (in_bytes[byte_idx].to_int() & (1 << bit_pos)).to_byte() != 0 {
+        val = val | (1 << j)
       }
-      bit_idx = bit_idx + 1
+      bit_idx += 1
     }
-
-    // 解压缩到原始范围
-    poly[i] = (val.to_float() * decompress_factor + 0.5).to_int()
+    poly[i] = (val * q + (1 << (d - 1))) >> d // 整数四舍五入解压
   }
 }
 
