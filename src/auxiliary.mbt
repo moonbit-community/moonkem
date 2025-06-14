@@ -69,7 +69,30 @@ pub fn bitwise_not(x : UInt64) -> UInt64 {
   return x ^ ALL_ONES_64
 }
 
-///|
+///| Keccak-f 置换函数（核心哈希运算）
+///
+/// Parameters
+///
+/// - `state` : 一个长度为 25 的 UInt64 数组，表示 5x5 的 Keccak 状态矩阵。
+///
+/// Returns
+///
+/// - `Unit` : 此函数无返回值，直接在输入的状态数组上进行原地修改。
+///
+/// Errors
+///
+/// - 无显式错误抛出（但需要确保输入数组长度为 25）。
+///
+/// Description
+///
+/// Keccak-f 是 Keccak 哈希算法（SHA-3 的核心）的置换函数。它对输入的 5x5 状态矩阵进行一系列回合（rounds）操作，每一回合包括以下 5 个步骤：
+///
+/// 1. θ (Theta)：列间异或和扩散，生成中间数组 c 和 d，并对状态进行修正；
+/// 2. ρ (Rho) 与 π (Pi)：位移操作和位置重新排列，将状态扩散到矩阵的其它位置；
+/// 3. χ (Chi)：行内非线性混淆，增强安全性；
+/// 4. ι (Iota)：加上回合常数，打破对称性。
+///
+/// 本实现按照标准流程原地修改输入状态。
 pub fn keccakF(state : Array[UInt64]) -> Unit {
   for round in 0..<nr {
     // ——— θ 步 ———
@@ -123,7 +146,35 @@ pub fn keccakF(state : Array[UInt64]) -> Unit {
   }
 }
 
-///|
+///| Keccak 消息填充函数（Keccak/SHA-3 专用）
+///
+/// Parameters
+///
+/// - `msg` : 原始消息字节数组（ByteArray）
+/// - `rateBytes` : 块长度，单位为字节。一般为 Keccak 的速率参数（如 136/104）
+/// - `padByte` : 填充起始字节（通常为 0x06 或 0x01，根据标准不同）
+///
+/// Returns
+///
+/// - `ByteArray` : 填充后的新字节数组，长度为 rateBytes 的整数倍
+///
+/// Errors
+///
+/// - 无显式错误抛出，但请确保参数含义正确
+///
+/// Description
+///
+/// 按 Keccak（SHA-3）标准对输入消息进行填充：
+/// 1. 首先在消息末尾追加 `padByte`（例如 0x06）
+/// 2. 用零字节（0x00）补齐至下一个 `rateBytes` 整数倍长度
+/// 3. 最后一个字节再异或 0x80，确保填充末尾为 1
+///
+/// 这种填充方式被称为 "multi-rate padding"（多速率填充），用于确保数据块边界，保证安全性。
+///
+/// Example
+/// ```
+/// let padded = keccakPad(msg, 136, 0x06)
+/// ```
 pub fn keccakPad(msg : ByteArray, rateBytes : Int, padByte : Byte) -> ByteArray {
   // 填充规则：在 msg 后加 0x06，末尾字节 ^ 0x80，扩至整块
   let msgLen = msg.length()
@@ -136,7 +187,41 @@ pub fn keccakPad(msg : ByteArray, rateBytes : Int, padByte : Byte) -> ByteArray 
   return padded
 }
 
-///|
+///| Keccak 海绵函数主流程（Sponge Construction）
+///
+/// Parameters
+///
+/// - `msg` : 输入消息字节数组（ByteArray）
+/// - `rateBytes` : 吸收/输出阶段的速率参数（单位：字节），决定每轮处理的消息块大小
+/// - `outLen` : 期望输出的摘要字节长度
+/// - `padByte` : 填充起始字节（通常为 0x06 或 0x01）
+///
+/// Returns
+///
+/// - `ByteArray` : 长度为 `outLen` 的输出字节数组（摘要）
+///
+/// Errors
+///
+/// - 无显式错误抛出，但需确保参数合法（如 `rateBytes` 是 8 的整数倍）
+///
+/// Description
+///
+/// 实现 Keccak 的 Sponge 结构，是 SHA-3 及 Keccak 哈希算法的核心：
+///
+/// 1. **初始化状态**：创建长度为 25 的 64 位整型数组作为状态（5x5 矩阵）
+/// 2. **填充消息**：使用 Keccak 标准填充（multi-rate padding）
+/// 3. **吸收阶段（Absorbing phase）**：
+///    - 每次取 `rateBytes` 长度的数据块，与状态前部进行异或合并
+///    - 每处理一块调用一次 Keccak-f 置换函数
+/// 4. **挤出阶段（Squeezing phase）**：
+///    - 每次输出 `rateBytes` 字节，若未满足 `outLen` 则继续调用 Keccak-f 并拼接输出
+///
+/// 这种结构保证了任意长度输入消息的安全哈希摘要输出，是现代哈希标准（如 SHA-3）的基础。
+///
+/// Example
+/// ```
+/// let digest = keccakSponge(msg, 136, 32, 0x06)
+/// ```
 pub fn keccakSponge(
   msg : ByteArray,
   rateBytes : Int,

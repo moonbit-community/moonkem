@@ -27,7 +27,7 @@ pub const QINV : Int = 62209
 pub const R2 : Int = 1353
 
 ///|
-typealias Function = Array[Int]
+typealias Array[Int] as Function
 
 ///|
 /// Precomputed twiddle factors for NTT
@@ -44,7 +44,36 @@ let zetas : Array[Int] = [
   403, 1026, 1143, 2150, 2775, 886, 1722, 1212, 1874, 1029, 2110, 2935, 885, 2154,
 ]
 
-///|
+///| 从种子生成 NTT 域采样多项式（常用于格密码）
+///
+/// Parameters
+///
+/// - `seed` : 用于采样的字节数组（ByteArray），作为熵源输入
+///
+/// Returns
+///
+/// - `Array[Int]` : 长度为 256 的整型数组 `a_hat`，表示 NTT 域多项式系数，每个系数 < `PARAM_Q`
+///
+/// Errors
+///
+/// - 无显式错误抛出，但需保证 `seed` 足够随机，`PARAM_Q` 已定义且合理
+///
+/// Description
+///
+/// 本函数通过“可扩展输出函数”（XOF，通常为 SHAKE 等）
+/// 从给定种子 deterministically 采样长度为 256 的多项式系数，每个系数为 `[0, PARAM_Q)` 区间整数：
+///
+/// 1. 初始化 XOF 吸收上下文，并吸收种子
+/// 2. 不断挤出 3 字节块，将每 3 字节解码为两个候选系数（d1、d2）
+/// 3. 满足 `< PARAM_Q` 则填入输出数组，否则丢弃
+/// 4. 返回填充满的 NTT 域多项式系数
+///
+/// 常用于格基公钥加密、数字签名等原语的安全参数初始化
+///
+/// Example
+/// ```
+/// let poly = sample_ntt(seed)
+/// ```
 pub fn sample_ntt(seed : ByteArray) -> Function {
   let mut ctx = xof_init()
   ctx = xof_absorb(ctx, seed)
@@ -66,7 +95,36 @@ pub fn sample_ntt(seed : ByteArray) -> Function {
   a_hat
 }
 
-///|
+///| 从种子生成 NTT 域采样多项式
+///
+/// Parameters
+///
+/// - `seed` : 用于采样的字节数组（ByteArray），作为熵源输入
+///
+/// Returns
+///
+/// - `Array[Int]` : 长度为 256 的整型数组 `a_hat`，表示 NTT 域多项式系数，每个系数 < `PARAM_Q`
+///
+/// Errors
+///
+/// - 无显式错误抛出，但需保证 `seed` 足够随机，`PARAM_Q` 已定义且合理
+///
+/// Description
+///
+/// 本函数通过“可扩展输出函数”（XOF，通常为 SHAKE 等）
+/// 从给定种子 deterministically 采样长度为 256 的多项式系数，每个系数为 `[0, PARAM_Q)` 区间整数：
+///
+/// 1. 初始化 XOF 吸收上下文，并吸收种子
+/// 2. 不断挤出 3 字节块，将每 3 字节解码为两个候选系数（d1、d2）
+/// 3. 满足 `< PARAM_Q` 则填入输出数组，否则丢弃
+/// 4. 返回填充满的 NTT 域多项式系数
+///
+/// 常用于格基公钥加密、数字签名等原语的安全参数初始化
+///
+/// Example
+/// ```
+/// let poly = sample_ntt(seed)
+/// ```
 pub fn sample_poly_cbd(seed : ByteArray) -> Function {
   let b = bytes_to_bits(seed)
   let f = Array::make(PARAM_N, 0)
@@ -188,7 +246,7 @@ test {
   }
   let hat_f = ntt(f)
   let f2 = intt(hat_f)
-  assert_eq!(f, f2)
+  assert_eq(f, f2)
 }
 
 ///|
@@ -219,11 +277,12 @@ pub fn base_case_multiply(
   (a0 * b0 + a1 * b1 * gamma, a0 * b1 + a1 * b0)
 }
 
+///|
 pub fn ntt_pointwise_mul(a : Array[Int], b : Array[Int], q : Int) -> Array[Int] {
   let n = a.length()
   let out = Array::make(n, 0)
   for i = 0; i < n; i = i + 1 {
-    out[i] = (a[i] * b[i]) % q
+    out[i] = a[i] * b[i] % q
     if out[i] < 0 {
       out[i] = out[i] + q
     }

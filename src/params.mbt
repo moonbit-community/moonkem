@@ -6,16 +6,12 @@
 pub struct CommonParams {
   /// 多项式阶数 (n = 256)
   n : Int
-
   /// 模数 (q = 3329)
   q : Int
-
   /// 哈希函数输出长度(字节)
   hash_bytes : Int
-
   /// 共享密钥长度(字节)
   ss_bytes : Int
-
   /// 对称密钥长度(字节)
   sym_bytes : Int
 }
@@ -25,31 +21,22 @@ pub struct CommonParams {
 pub struct SecurityParams {
   /// 安全级别名称
   name : String
-
   /// 安全强度(位)
   security_bits : Int
-
   /// 矩阵/向量维度 (k)
   k : Int
-
   /// 噪声分布参数 (η, eta)
   eta : Int
-
   /// 公钥压缩参数 (du)
   du : Int
-
   /// 密文压缩参数 (dv)
   dv : Int
-
   /// 种子字节长度
   seed_bytes : Int
-
   /// 公钥字节长度
   public_key_bytes : Int
-
   /// 私钥字节长度
   secret_key_bytes : Int
-
   /// 密文字节长度
   ciphertext_bytes : Int
 }
@@ -130,16 +117,12 @@ pub fn get_params(level : Int) -> SecurityParams {
 pub struct NTTParams {
   /// 原根 ζ (zeta)
   zeta : Int
-
   /// 二元多项式乘法的蒙哥马利参数
   montgomery_r : Int
-
   /// 蒙哥马利约简所需的参数
   montgomery_r2 : Int
-
   /// 模逆运算的常数: -q^(-1) mod 2^16
   q_inv : Int
-
   /// 模数分解: q = 2^d - epsilon, d=13
   d : Int
   epsilon : Int
