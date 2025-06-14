@@ -288,7 +288,7 @@ test "bit_packing_verification" {
 
   // 验证解包结果
   for i = 0; i < values.length(); i = i + 1 {
-    assert_eq!(values[i], unpacked[i])
+    assert_eq(values[i], unpacked[i])
   }
 }
 

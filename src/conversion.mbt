@@ -58,7 +58,7 @@ fn decompress(y : Int, d : Int) -> Int {
 
 ///|
 /// ByteEncode_d: 整数数组 F[0..255] → ByteArray (长 32*d)
-fn byte_encode(f : Array[Int], d : Int) -> ByteArray {
+pub fn byte_encode(f : Array[Int], d : Int) -> ByteArray {
   let bits = Array::make(256 * d, 0)
 
   // 将每个 F[i] （模 m）拆成 d bit
@@ -76,7 +76,7 @@ fn byte_encode(f : Array[Int], d : Int) -> ByteArray {
 
 ///|
 /// ByteDecode_d: ByteArray → 整数数组 F[0..255]
-fn byte_decode(b : ByteArray, d : Int) -> Array[Int] {
+pub fn byte_decode(b : ByteArray, d : Int) -> Array[Int] {
   // 先拆位
   let bits = bytes_to_bits(b)
   let f = Array::make(256, 0)

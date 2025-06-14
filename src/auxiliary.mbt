@@ -340,11 +340,13 @@ pub fn bit_length(n : Int) -> Int {
 }
 
 ///|
+/// SHAKE128 初始化
 pub fn xof_init() -> XOF_CTX {
   { state: Array::make(25, 0), buf: [], squeezed: false }
 }
 
 ///|
+/// SHAKE128 吸收数据
 pub fn absorb_block(ctx : XOF_CTX) -> Unit {
   for lane = 0; lane < 168 / 8; lane = lane + 1 {
     let mut t : UInt64 = 0
@@ -355,6 +357,35 @@ pub fn absorb_block(ctx : XOF_CTX) -> Unit {
   }
   keccakF(ctx.state)
   ctx.buf.clear()
+}
+
+///| SHAKE128 挤出输出
+pub fn shake128_squeeze(ctx : XOF_CTX, out_len : Int) -> (XOF_CTX, ByteArray) {
+  if not(ctx.squeezed) {
+    // 填充：0x1F，最后一字节 ^ 0x80
+    ctx.buf.push(0x1F)
+    while ctx.buf.length() < 168 - 1 {
+      ctx.buf.push(0x00)
+    }
+    ctx.buf.push(0x80)
+    absorb_block(ctx)
+    ctx.squeezed = true
+  }
+  let output : ByteArray = []
+  while output.length() < out_len {
+    for lane = 0; lane < 168 / 8; lane = lane + 1 {
+      for b = 0; b < 8; b = b + 1 {
+        if output.length() < out_len {
+          let byte : Byte = (ctx.state[lane] >> (8 * b)).to_byte() & 0xFF
+          output.push(byte)
+        }
+      }
+    }
+    if output.length() < out_len {
+      keccakF(ctx.state)
+    }
+  }
+  (ctx, output)
 }
 
 ///|

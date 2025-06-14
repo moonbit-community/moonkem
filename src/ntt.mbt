@@ -218,3 +218,15 @@ pub fn base_case_multiply(
 ) -> (Int, Int) {
   (a0 * b0 + a1 * b1 * gamma, a0 * b1 + a1 * b0)
 }
+
+pub fn ntt_pointwise_mul(a : Array[Int], b : Array[Int], q : Int) -> Array[Int] {
+  let n = a.length()
+  let out = Array::make(n, 0)
+  for i = 0; i < n; i = i + 1 {
+    out[i] = (a[i] * b[i]) % q
+    if out[i] < 0 {
+      out[i] = out[i] + q
+    }
+  }
+  out
+}

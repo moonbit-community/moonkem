@@ -1,0 +1,9 @@
+{
+    "is-main": false,
+    "import": [
+      {
+        "path": "xunyoyo/moonkem",
+        "alias": "kem"
+      }
+    ]
+}
