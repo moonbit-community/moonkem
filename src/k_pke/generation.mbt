@@ -34,29 +34,31 @@ pub fn keygen(d : ByteArray) -> (ByteArray, ByteArray) {
   for item in e {
     e_hat.push(@kem.ntt(item))
   }
-
   let t_hat = Array::make(4, Array::make(256, 0))
-for i = 0; i < 4; i = i + 1 {
-  let acc = Array::make(256, 0)
-  for j = 0; j < 4; j = j + 1 {
-    let prod = @kem.ntt_pointwise_mul(a_hat[i][j], s_hat[j], @kem.PARAM_Q)
-    if j == 0 {
-      @kem.poly_copy(acc, prod)
-    } else {
-      @kem.poly_add(acc, acc, prod)
+  for i = 0; i < 4; i = i + 1 {
+    let acc = Array::make(256, 0)
+    for j = 0; j < 4; j = j + 1 {
+      let prod = @kem.ntt_pointwise_mul(a_hat[i][j], s_hat[j], @kem.PARAM_Q)
+      if j == 0 {
+        @kem.poly_copy(acc, prod)
+      } else {
+        @kem.poly_add(acc, acc, prod)
+      }
     }
+    @kem.poly_add(acc, acc, e_hat[i])
+    @kem.poly_copy(t_hat[i], acc)
   }
-  @kem.poly_add(acc, acc, e_hat[i])
-  @kem.poly_copy(t_hat[i], acc)
-}
-  let ek_PKE = @kem.byte_encode(t_hat, 12)
-  (1, 1)
+  let ek_PKE = byte_encode12(t_hat)
+  ek_PKE.append(rho)
+  let dk_PKE = byte_encode12(s_hat)
+  (ek_PKE, dk_PKE)
 }
 
+///|
 fn byte_encode12(polys : Array[Array[Int]]) -> ByteArray {
   let out = []
   for poly in polys {
-    let buf: Array[Byte] = Array::make(256 * 12 / 8, 0)
+    let buf : Array[Byte] = Array::make(256 * 12 / 8, 0)
     @kem.poly_compress(buf, poly, 12)
     out.append(buf)
   }
