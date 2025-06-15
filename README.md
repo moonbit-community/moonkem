@@ -29,9 +29,7 @@ moonkem 依赖 Moonbit 语言环境。
 ### 1. 生成密钥对
 
 ```moonbit
-import moonkem
-
-let (ek, dk) = moonkem.ml_keygen()
+let (ek, dk) = @moonkem.ml_keygen()
 // ek: 封装公钥（发送方用）
 // dk: 解封装私钥（接收方用）
 ```
@@ -39,7 +37,7 @@ let (ek, dk) = moonkem.ml_keygen()
 ### 2. 封装（加密协商密钥）
 
 ```moonbit
-let (K, c) = moonkem.ml_encaps(ek)
+let (K, c) = @moonkem.ml_encaps(ek)
 // K: 协商出的共享密钥
 // c: 密文（发送给接收方）
 ```
@@ -47,14 +45,14 @@ let (K, c) = moonkem.ml_encaps(ek)
 ### 3. 解封装（解密恢复密钥）
 
 ```moonbit
-let K2 = moonkem.ml_decaps(dk, c)
+let K2 = @moonkem.ml_decaps(dk, c)
 // K2: 恢复出的共享密钥，理论上 K2 == K
 ```
 
 ### 4. 密钥对一致性检查
 
 ```moonbit
-let ok = moonkem.check_pairwise_consistency(ek, dk)
+let ok = @moonkem.check_pairwise_consistency(ek, dk)
 if ok {
   print("密钥对一致性通过")
 } else {
