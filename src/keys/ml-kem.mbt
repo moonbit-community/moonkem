@@ -40,7 +40,7 @@
 /// ```
 pub fn keygen_internal(d : ByteArray, z : ByteArray) -> (ByteArray, ByteArray) {
   // 1. K-PKE 密钥对生成
-  let (ek_PKE, dk_PKE) = keygen(d)
+  let (ek_PKE, dk_PKE) = k_keygen(d)
   // 2. ek = ek_PKE
   let ek = ek_PKE
   // 3. dk = dk_PKE || ek || H(ek) || z
@@ -152,17 +152,15 @@ pub fn encaps_internal(ek : ByteArray, m : ByteArray) -> (ByteArray, ByteArray) 
 /// ```
 pub fn decaps_internal(dk : ByteArray, c : ByteArray) -> ByteArray {
   let k = 4
-  let d_u = 6
-  let d_v = 6
 
   // 1. dk_PKE ← dk[0 : 384k]
-  let dk_PKE = dk[0 : 384 * k].iter().collect()
+  let dk_PKE = dk[0:384 * k].iter().collect()
   // 2. ek_PKE ← dk[384k : 768k+32]
-  let ek_PKE = dk[384 * k : 768 * k + 32].iter().collect()
+  let ek_PKE = dk[384 * k:768 * k + 32].iter().collect()
   // 3. h ← dk[768k+32 : 768k+64]
-  let h = dk[768 * k + 32 : 768 * k + 64].iter().collect()
+  let h = dk[768 * k + 32:768 * k + 64].iter().collect()
   // 4. z ← dk[768k+64 : 768k+96]
-  let z = dk[768 * k + 64 : 768 * k + 96].iter().collect()
+  let z = dk[768 * k + 64:768 * k + 96].iter().collect()
 
   // 5. m′ ← K-PKE.Decrypt(dk_PKE, c)
   let m_prime = decrypt(dk_PKE, c)
@@ -184,4 +182,78 @@ pub fn decaps_internal(dk : ByteArray, c : ByteArray) -> ByteArray {
   }
   // 12. return K′
   k_final
+}
+
+///|
+/// 生成 n 字节的安全随机字节数组
+pub fn random_bytes(n : Int) -> ByteArray {
+  let rng = @random.Rand::new()
+  let arr : Array[Byte] = Array::make(n, 0)
+  for i = 0; i < n; i = i + 1 {
+    arr[i] = rng.uint(limit=256).to_byte()
+  }
+  arr
+}
+
+///|
+/// ML-KEM.KeyGen()
+/// 生成封装公钥 ek 和解封装私钥 dk
+/// @return (ek, dk) 元组
+pub fn ml_keygen() -> (ByteArray, ByteArray) {
+  // 1. 随机生成 d, z
+  let d = random_bytes(32)
+  let z = random_bytes(32)
+  // 3. 检查随机数生成是否成功
+  if d == [] || z == [] {
+    abort("Random bit generation failed")
+  }
+  // 6. 调用内部密钥生成
+  let (ek, dk) = keygen_internal(d, z)
+  // 7. 返回
+  (ek, dk)
+}
+
+///|
+/// 检查密钥对 (ek, dk) 的一致性（pair-wise consistency）
+/// @param ek 封装公钥
+/// @param dk 解封装私钥
+/// @return Bool 是否一致
+pub fn check_pairwise_consistency(ek : ByteArray, dk : ByteArray) -> Bool {
+  // i. 生成32字节随机消息
+  let m = random_bytes(32)
+  // ii. (k, c) ← ML-KEM.Encaps_internal(ek, m)
+  let (k, c) = encaps_internal(ek, m)
+  // iii. K′ ← ML-KEM.Decaps_internal(dk, c)
+  let k_prime = decaps_internal(dk, c)
+  // iv. 检查 k == k′
+  @kem.constant_time_compare(k, k_prime)
+}
+
+///|
+/// ML-KEM.Encaps
+/// @param ek 封装公钥
+/// @return (K, c) 共享密钥与密文
+pub fn ml_encaps(ek : ByteArray) -> (ByteArray, ByteArray) {
+  // 1. m ←₍$₎ 𝔹^{32}
+  let m = random_bytes(32)
+  // 2. 检查随机数生成是否成功
+  if m == [] {
+    abort("Random bit generation failed")
+  }
+  // 5. (K, c) ← ML-KEM.Encaps_internal(ek, m)
+  let (k, c) = encaps_internal(ek, m)
+  // 6. 返回 (K, c)
+  (k, c)
+}
+
+///|
+/// ML-KEM.Decaps
+/// @param dk 解封装私钥
+/// @param c  密文
+/// @return   共享密钥 K
+pub fn ml_decaps(dk : ByteArray, c : ByteArray) -> ByteArray {
+  // 1. K′ ← ML-KEM.Decaps_internal(dk, c)
+  let k_prime = decaps_internal(dk, c)
+  // 2. return K′
+  k_prime
 }

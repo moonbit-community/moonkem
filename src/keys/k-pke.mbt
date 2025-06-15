@@ -47,7 +47,7 @@ typealias Array[Byte] as ByteArray
 /// ```
 /// let (ek, dk) = keygen(d)
 /// ```
-pub fn keygen(d : ByteArray) -> (ByteArray, ByteArray) {
+pub fn k_keygen(d : ByteArray) -> (ByteArray, ByteArray) {
   d.push(4)
   let (rho, sigma) = @kem.g(d)
   let mut n = 0
