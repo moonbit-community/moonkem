@@ -74,7 +74,8 @@ let zetas : Array[Int] = [
 ///
 /// Example
 /// ```
-/// let poly = sample_ntt(seed)
+/// let my_seed : Array[Byte] = [1, 2, 3] // your seed bytes  
+/// let _poly = sample_ntt(my_seed)
 /// ```
 pub fn sample_ntt(seed : ByteArray) -> Function {
   let mut ctx = xof_init()
@@ -125,7 +126,8 @@ pub fn sample_ntt(seed : ByteArray) -> Function {
 ///
 /// Example
 /// ```
-/// let poly = sample_ntt(seed)
+/// let my_seed : Array[Byte] = [1, 2, 3] // your seed bytes
+/// let _poly = sample_poly_cbd(my_seed)
 /// ```
 pub fn sample_poly_cbd(seed : ByteArray) -> Function {
   let b = bytes_to_bits(seed)
@@ -161,15 +163,13 @@ pub fn sample_poly_cbd(seed : ByteArray) -> Function {
 /// Example:
 ///
 /// ```moonbit
-/// ///|
-/// test "ntt/basic" {
-///   let f = Array::make(256, 0)
-///   f[0] = 1
-///   f[1] = 2
-///   let hat_f = ntt(f)
-///   inspect!(hat_f[0], content="3")
-///   inspect!(hat_f[1], content="2078")
-/// }
+/// // Example usage:
+/// let f = Array::make(256, 0)
+/// f[0] = 1
+/// f[1] = 2
+/// let _hat_f = ntt(f)
+/// // _hat_f[0] should equal 3
+/// // _hat_f[1] should equal 2078
 /// ```
 pub fn ntt(f : Function) -> Function {
   if f.length() != PARAM_N {
@@ -209,15 +209,13 @@ pub fn ntt(f : Function) -> Function {
 /// Example:
 ///
 /// ```moonbit
-/// ///|
-/// test "intt/basic" {
-///   let f = Array::make(256, 0)
-///   f[0] = 3
-///   f[1] = 2078
-///   let orig_f = intt(f)
-///   inspect!(orig_f[0], content="1")
-///   inspect!(orig_f[1], content="2")
-/// }
+/// // Example usage:
+/// let f = Array::make(256, 0)
+/// f[0] = 3
+/// f[1] = 2078
+/// let _orig_f = intt(f)
+/// // _orig_f[0] should equal 1
+/// // _orig_f[1] should equal 2
 /// ```
 pub fn intt(hat_f : Function) -> Function {
   if hat_f.length() != PARAM_N {

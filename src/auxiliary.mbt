@@ -6,12 +6,6 @@ const ALL_ONES_64 : UInt64 = 0xFFFFFFFFFFFFFFFF
 
 ///| const
 
-///| 
-let w = 64
-
-///| 
-let b = 1600
-
 ///|
 let nr = 24
 
@@ -174,7 +168,8 @@ pub fn keccakF(state : Array[UInt64]) -> Unit {
 ///
 /// Example
 /// ```
-/// let padded = keccakPad(msg, 136, 0x06)
+/// let input_msg : Array[Byte] = [1, 2, 3] // your message bytes
+/// let _padded = keccakPad(input_msg, 136, 0x06)
 /// ```
 pub fn keccakPad(msg : ByteArray, rateBytes : Int, padByte : Byte) -> ByteArray {
   // 填充规则：在 msg 后加 0x06，末尾字节 ^ 0x80，扩至整块
@@ -221,7 +216,8 @@ pub fn keccakPad(msg : ByteArray, rateBytes : Int, padByte : Byte) -> ByteArray 
 ///
 /// Example
 /// ```
-/// let digest = keccakSponge(msg, 136, 32, 0x06)
+/// let input_msg : Array[Byte] = [1, 2, 3] // your message bytes
+/// let _digest = keccakSponge(input_msg, 136, 32, 0x06)
 /// ```
 pub fn keccakSponge(
   msg : ByteArray,
@@ -372,7 +368,7 @@ pub fn bytes_to_ints(bytes : ByteArray, mod_value : Int) -> Array[Int] {
       let bits_remaining_in_byte = 8 - bit_pos
 
       // 确定要从当前字节中获取多少位
-      let bits_to_read = @math.minimum(
+      let bits_to_read = @cmp.minimum(
         bits_remaining_in_byte,
         bits_per_int - bits_collected,
       )

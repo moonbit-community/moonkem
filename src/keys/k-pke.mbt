@@ -319,14 +319,12 @@ pub fn decrypt(dk_PKE : ByteArray, c : ByteArray) -> ByteArray {
   for i = 0; i < k; i = i + 1 {
     let offset = i * (256 * d_u / 8)
     let buf = c1[offset:offset + 256 * d_u / 8].iter().collect()
-    let poly = @kem.byte_decode(buf, d_u)
     let poly2 = Array::make(256, 0)
     @kem.poly_decompress(poly2, buf, d_u)
     u_prime.push(poly2)
   }
 
   // 3. 解码 v'
-  let v_prime_poly = @kem.byte_decode(c2, d_v)
   let v_prime = Array::make(256, 0)
   @kem.poly_decompress(v_prime, c2, d_v)
 

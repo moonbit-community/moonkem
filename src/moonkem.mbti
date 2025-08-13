@@ -1,0 +1,185 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "xunyoyo/moonkem"
+
+// Values
+const PARAM_ETA1 : Int = 2
+
+const PARAM_ETA2 : Int = 2
+
+const PARAM_K : Int = 4
+
+const PARAM_N : Int = 256
+
+const PARAM_Q : Int = 3329
+
+const QINV : Int = 62209
+
+const R2 : Int = 1353
+
+fn absorb_block(XOF_CTX) -> Unit
+
+let barrett_reduce_factor : Int
+
+fn base_case_multiply(Int, Int, Int, Int, Int) -> (Int, Int)
+
+fn bit_length(Int) -> Int
+
+fn bitwise_not(UInt64) -> UInt64
+
+fn byte_decode(Array[Byte], Int) -> Array[Int]
+
+fn byte_encode(Array[Int], Int) -> Array[Byte]
+
+fn bytes_to_bits(Array[Byte]) -> Array[Int]
+
+fn bytes_to_ints(Array[Byte], Int) -> Array[Int]
+
+let common_params : CommonParams
+
+fn concat_bytes(Array[Byte], Array[Byte]) -> Array[Byte]
+
+fn constant_time_compare(Array[Byte], Array[Byte]) -> Bool
+
+fn from_uint64(UInt64) -> Array[Byte]
+
+fn g(Array[Byte]) -> (Array[Byte], Array[Byte])
+
+fn get_params(Int) -> SecurityParams
+
+fn h(Array[Byte]) -> Array[Byte]
+
+fn intt(Array[Int]) -> Array[Int]
+
+fn j(Array[Byte]) -> Array[Byte]
+
+fn keccakF(Array[UInt64]) -> Unit
+
+fn keccakPad(Array[Byte], Int, Byte) -> Array[Byte]
+
+fn keccakSponge(Array[Byte], Int, Int, Byte) -> Array[Byte]
+
+let ml_kem_1024 : SecurityParams
+
+let ml_kem_512 : SecurityParams
+
+let ml_kem_768 : SecurityParams
+
+fn mod_q(Int, Int) -> Int
+
+fn multiply_ntts(Array[Int], Array[Int]) -> Array[Int]
+
+fn new_ciphertext(SecurityParams) -> Ciphertext
+
+fn new_poly(Int) -> Array[Int]
+
+fn new_poly_vec(Int, Int) -> Array[Array[Int]]
+
+fn new_public_key(SecurityParams) -> PublicKey
+
+fn new_secret_key(SecurityParams) -> SecretKey
+
+fn ntt(Array[Int]) -> Array[Int]
+
+let ntt_params : NTTParams
+
+fn ntt_pointwise_mul(Array[Int], Array[Int], Int) -> Array[Int]
+
+fn poly_add(Array[Int], Array[Int], Array[Int]) -> Unit
+
+fn poly_compress(Array[Byte], Array[Int], Int) -> Unit
+
+fn poly_copy(Array[Int], Array[Int]) -> Unit
+
+fn poly_decompress(Array[Int], Array[Byte], Int) -> Unit
+
+fn poly_is_zero(Array[Int]) -> Bool
+
+fn poly_reduce(Array[Int]) -> Unit
+
+fn poly_scalar_mul(Array[Int], Array[Int], Int) -> Unit
+
+fn poly_sub(Array[Int], Array[Int], Array[Int]) -> Unit
+
+fn prf(Int, Array[Byte], Byte) -> Array[Byte]
+
+fn rotl(UInt64, Int) -> UInt64
+
+fn sample_ntt(Array[Byte]) -> Array[Int]
+
+fn sample_poly_cbd(Array[Byte]) -> Array[Int]
+
+fn sha3_256(Array[Byte]) -> Array[Byte]
+
+fn sha3_512(Array[Byte]) -> Array[Byte]
+
+fn shake128(Array[Byte], Int) -> Array[Byte]
+
+fn shake128_squeeze(XOF_CTX, Int) -> (XOF_CTX, Array[Byte])
+
+fn shake256(Array[Byte], Int) -> Array[Byte]
+
+fn to_uint64(Array[Byte]) -> UInt64
+
+fn xof_absorb(XOF_CTX, Array[Byte]) -> XOF_CTX
+
+fn xof_init() -> XOF_CTX
+
+fn xof_squeeze(XOF_CTX, Int) -> (XOF_CTX, Array[Byte])
+
+// Errors
+
+// Types and methods
+pub struct Ciphertext {
+  u : Array[Array[Int]]
+  v : Array[Int]
+}
+
+pub struct CommonParams {
+  n : Int
+  q : Int
+  hash_bytes : Int
+  ss_bytes : Int
+  sym_bytes : Int
+}
+
+pub struct NTTParams {
+  zeta : Int
+  montgomery_r : Int
+  montgomery_r2 : Int
+  q_inv : Int
+  d : Int
+  epsilon : Int
+}
+
+pub struct PublicKey {
+  t : Array[Array[Int]]
+  rho : Array[Byte]
+}
+
+pub struct SecretKey {
+  s : Array[Array[Int]]
+  t : Array[Array[Int]]
+  rho : Array[Byte]
+  h : Array[Byte]
+  z : Array[Byte]
+}
+
+pub struct SecurityParams {
+  name : String
+  security_bits : Int
+  k : Int
+  eta : Int
+  du : Int
+  dv : Int
+  seed_bytes : Int
+  public_key_bytes : Int
+  secret_key_bytes : Int
+  ciphertext_bytes : Int
+}
+
+type XOF_CTX
+
+// Type aliases
+
+// Traits
+
