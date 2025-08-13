@@ -4,12 +4,12 @@
 /// 多项式类型，基本构建块
 /// 表示R_q = Z_q[X]/(X^n + 1)中的元素
 /// 其中q = 3329, n = 256
-typealias Poly = Array[Int]
+typealias Array[Int] as Poly
 
 ///|
 /// 多项式向量类型
 /// k维多项式向量，k取决于安全级别(k=2,3,4)
-typealias PolyVec = Array[Poly]
+typealias Array[Poly] as PolyVec
 
 ///|
 /// 公钥结构体
@@ -17,7 +17,6 @@ typealias PolyVec = Array[Poly]
 pub struct PublicKey {
   /// 公钥多项式向量 t = A·s + e
   t : PolyVec
-
   /// 用于确定性生成矩阵A的种子
   rho : ByteArray
 }
@@ -28,13 +27,10 @@ pub struct PublicKey {
 pub struct SecretKey {
   /// 私钥多项式向量s
   s : PolyVec
-
   /// 公钥值t (= A·s + e)
   t : PolyVec
-
   /// 用于确定性生成矩阵A的种子
   rho : ByteArray
-
   /// 公钥的哈希值，用于侧信道防护
   h : ByteArray
   /// 随机字节，用于确定性re-encryption
@@ -47,7 +43,6 @@ pub struct SecretKey {
 pub struct Ciphertext {
   /// 密文第一部分，u = A^T·r + e1
   u : PolyVec
-
   /// 密文第二部分，v = t^T·r + e2 + ⌈q/2⌉·m
   v : Poly
 }

@@ -4,6 +4,7 @@
 /// This module is based on the ML-KEM (CRYSTALS-Kyber) specification.
 
 // 基本参数定义
+
 ///| ML-KEM 模数
 pub const PARAM_Q : Int = 3329 // KYBER_Q
 
@@ -20,6 +21,7 @@ pub const PARAM_ETA1 : Int = 2 // KYBER_ETA1 (K=4时为2)
 pub const PARAM_ETA2 : Int = 2 // KYBER_ETA2
 
 // Montgomery 相关常量
+
 ///| Montgomery 规约常量 -q^(-1) mod 2^16
 pub const QINV : Int = 62209
 
@@ -272,7 +274,7 @@ pub fn base_case_multiply(
   a1 : Int,
   b0 : Int,
   b1 : Int,
-  gamma : Int
+  gamma : Int,
 ) -> (Int, Int) {
   (a0 * b0 + a1 * b1 * gamma, a0 * b1 + a1 * b0)
 }

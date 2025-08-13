@@ -1,10 +1,11 @@
 ///|
-typealias ByteArray = Array[Byte]
+typealias Array[Byte] as ByteArray
 
 ///|
 const ALL_ONES_64 : UInt64 = 0xFFFFFFFFFFFFFFFF
 
 ///| const
+
 ///| 
 let w = 64
 
@@ -226,7 +227,7 @@ pub fn keccakSponge(
   msg : ByteArray,
   rateBytes : Int,
   outLen : Int,
-  padByte : Byte
+  padByte : Byte,
 ) -> ByteArray {
   let state : Array[UInt64] = Array::make(25, 0)
   let padded = keccakPad(msg, rateBytes, padByte)
