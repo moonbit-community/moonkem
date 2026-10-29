@@ -1,0 +1,189 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "xunyoyo/moonkem"
+
+// Values
+pub const PARAM_ETA1 : Int32 = 2
+
+pub const PARAM_ETA2 : Int32 = 2
+
+pub const PARAM_K : Int32 = 4
+
+pub const PARAM_N : Int32 = 256
+
+pub const PARAM_Q : Int32 = 3329
+
+pub const QINV : Int32 = 62209
+
+pub const R2 : Int32 = 1353
+
+pub fn absorb_block(XOF_CTX) -> Unit
+
+pub let barrett_reduce_factor : Int32
+
+pub fn base_case_multiply(Int32, Int32, Int32, Int32, Int32) -> (Int32, Int32)
+
+pub fn bit_length(Int32) -> Int32
+
+pub fn bitwise_not(UInt64) -> UInt64
+
+pub fn byte_decode(Array[Byte], Int32) -> Array[Int32]
+
+pub fn byte_encode(Array[Int32], Int32) -> Array[Byte]
+
+pub fn bytes_to_ints(Array[Byte], Int32) -> Array[Int32]
+
+pub let common_params : CommonParams
+
+pub fn concat_bytes(Array[Byte], Array[Byte]) -> Array[Byte]
+
+pub fn constant_time_compare(Array[Byte], Array[Byte]) -> Bool
+
+pub fn from_uint64(UInt64) -> Array[Byte]
+
+pub fn g(Array[Byte]) -> (Array[Byte], Array[Byte])
+
+pub fn get_params(Int32) -> SecurityParams
+
+pub fn h(Array[Byte]) -> Array[Byte]
+
+pub fn intt(Array[Int32]) -> Array[Int32]
+
+pub fn j(Array[Byte]) -> Array[Byte]
+
+pub fn keccakF(Array[UInt64]) -> Unit
+
+pub fn keccakPad(Array[Byte], Int32, Byte) -> Array[Byte]
+
+pub fn keccakSponge(Array[Byte], Int32, Int32, Byte) -> Array[Byte]
+
+pub let ml_kem_1024 : SecurityParams
+
+pub let ml_kem_512 : SecurityParams
+
+pub let ml_kem_768 : SecurityParams
+
+pub fn mod_q(Int32, Int32) -> Int32
+
+pub fn multiply_ntts(Array[Int32], Array[Int32]) -> Array[Int32]
+
+pub fn new_ciphertext(SecurityParams) -> Ciphertext
+
+pub fn new_poly(Int32) -> Array[Int32]
+
+pub fn new_poly_vec(Int32, Int32) -> Array[Array[Int32]]
+
+pub fn new_public_key(SecurityParams) -> PublicKey
+
+pub fn new_secret_key(SecurityParams) -> SecretKey
+
+pub fn ntt(Array[Int32]) -> Array[Int32]
+
+pub let ntt_params : NTTParams
+
+pub fn ntt_pointwise_mul(Array[Int32], Array[Int32], Int32) -> Array[Int32]
+
+pub fn poly_add(Array[Int32], Array[Int32], Array[Int32]) -> Unit
+
+pub fn poly_compress(Array[Byte], Array[Int32], Int32) -> Unit
+
+pub fn poly_copy(Array[Int32], Array[Int32]) -> Unit
+
+pub fn poly_decompress(Array[Int32], Array[Byte], Int32) -> Unit
+
+pub fn poly_is_zero(Array[Int32]) -> Bool
+
+pub fn poly_reduce(Array[Int32]) -> Unit
+
+pub fn poly_scalar_mul(Array[Int32], Array[Int32], Int32) -> Unit
+
+pub fn poly_sub(Array[Int32], Array[Int32], Array[Int32]) -> Unit
+
+pub fn prf(Int32, Array[Byte], Byte) -> Array[Byte]
+
+pub fn rotl(UInt64, Int32) -> UInt64
+
+pub fn sample_ntt(Array[Byte]) -> Array[Int32]
+
+pub fn sample_poly_cbd(Array[Byte]) -> Array[Int32]
+
+pub fn sha3_256(Array[Byte]) -> Array[Byte]
+
+pub fn sha3_512(Array[Byte]) -> Array[Byte]
+
+pub fn shake128(Array[Byte], Int32) -> Array[Byte]
+
+pub fn shake128_squeeze(XOF_CTX, Int32) -> (XOF_CTX, Array[Byte])
+
+pub fn shake256(Array[Byte], Int32) -> Array[Byte]
+
+pub fn to_uint64(Array[Byte]) -> UInt64
+
+pub fn xof_absorb(XOF_CTX, Array[Byte]) -> XOF_CTX
+
+pub fn xof_init() -> XOF_CTX
+
+pub fn xof_squeeze(XOF_CTX, Int32) -> (XOF_CTX, Array[Byte])
+
+// Errors
+
+// Types and methods
+pub struct Ciphertext {
+  u : Array[Array[Int32]]
+  v : Array[Int32]
+}
+
+pub struct CommonParams {
+  n : Int32
+  q : Int32
+  hash_bytes : Int32
+  ss_bytes : Int32
+  sym_bytes : Int32
+}
+
+pub struct NTTParams {
+  zeta : Int32
+  montgomery_r : Int32
+  montgomery_r2 : Int32
+  q_inv : Int32
+  d : Int32
+  epsilon : Int32
+}
+
+pub struct PublicKey {
+  t : Array[Array[Int32]]
+  rho : Array[Byte]
+}
+
+pub struct SecretKey {
+  s : Array[Array[Int32]]
+  t : Array[Array[Int32]]
+  rho : Array[Byte]
+  h : Array[Byte]
+  z : Array[Byte]
+}
+
+pub struct SecurityParams {
+  name : String
+  security_bits : Int32
+  k : Int32
+  eta : Int32
+  du : Int32
+  dv : Int32
+  seed_bytes : Int32
+  public_key_bytes : Int32
+  secret_key_bytes : Int32
+  ciphertext_bytes : Int32
+}
+
+type XOF_CTX
+
+// Type aliases
+pub type ByteArray = Array[Byte]
+
+pub type Function = Array[Int32]
+
+pub type Poly = Array[Int32]
+
+pub type PolyVec = Array[Array[Int32]]
+
+// Traits

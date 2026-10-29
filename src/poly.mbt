@@ -5,7 +5,7 @@
 /// @param a 输入整数
 /// @param q 模数
 /// @return 模运算结果
-pub fn mod_q(a : Int, q : Int) -> Int {
+pub fn mod_q(a : Int32, q : Int32) -> Int32 {
   (a % q + q) % q
 }
 
@@ -40,7 +40,7 @@ pub fn poly_sub(c : Poly, a : Poly, b : Poly) -> Unit {
 /// @param b 结果多项式 (可以与a相同)
 /// @param a 输入多项式
 /// @param scalar 标量
-pub fn poly_scalar_mul(b : Poly, a : Poly, scalar : Int) -> Unit {
+pub fn poly_scalar_mul(b : Poly, a : Poly, scalar : Int32) -> Unit {
   let n = common_params.n
   let q = common_params.q
   for i = 0; i < n; i = i + 1 {
@@ -73,7 +73,7 @@ pub fn poly_reduce(a : Poly) -> Unit {
 /// @param out 输出字节数组
 /// @param poly 输入多项式
 /// @param d 压缩位数
-pub fn poly_compress(out : ByteArray, poly : Poly, d : Int) -> Unit {
+pub fn poly_compress(out : ByteArray, poly : Poly, d : Int32) -> Unit {
   let n = poly.length()
   let q = common_params.q
 
@@ -115,7 +115,7 @@ pub fn poly_compress(out : ByteArray, poly : Poly, d : Int) -> Unit {
 /// @param poly 输出多项式
 /// @param in_bytes 输入字节数组
 /// @param d 压缩位数
-pub fn poly_decompress(poly : Poly, in_bytes : ByteArray, d : Int) -> Unit {
+pub fn poly_decompress(poly : Poly, in_bytes : ByteArray, d : Int32) -> Unit {
   let n = poly.length()
   let q = common_params.q
 

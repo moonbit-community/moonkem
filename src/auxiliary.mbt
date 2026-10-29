@@ -1,21 +1,22 @@
 ///|
-typealias ByteArray = Array[Byte]
+pub type ByteArray = Array[Byte]
 
 ///|
 const ALL_ONES_64 : UInt64 = 0xFFFFFFFFFFFFFFFF
 
 ///| const
-///| 
-let w = 64
 
-///| 
-let b = 1600
+///|
+let _w = 64
+
+///|
+let _b = 1600
 
 ///|
 let nr = 24
 
 ///|
-let r = [
+let r : Array[Array[Int32]] = [
   [0, 36, 3, 41, 18],
   [1, 44, 10, 45, 2],
   [62, 6, 43, 15, 61],
@@ -60,7 +61,7 @@ pub fn from_uint64(x : UInt64) -> ByteArray {
 }
 
 ///|
-pub fn rotl(x : UInt64, n : Int) -> UInt64 {
+pub fn rotl(x : UInt64, n : Int32) -> UInt64 {
   ((x << n) | (x >> (64 - n))) & 0xFFFFFFFFFFFFFFFF
 }
 
@@ -69,7 +70,8 @@ pub fn bitwise_not(x : UInt64) -> UInt64 {
   return x ^ ALL_ONES_64
 }
 
-///| Keccak-f 置换函数（核心哈希运算）
+///|
+/// Keccak-f 置换函数（核心哈希运算）
 ///
 /// Parameters
 ///
@@ -96,7 +98,7 @@ pub fn bitwise_not(x : UInt64) -> UInt64 {
 pub fn keccakF(state : Array[UInt64]) -> Unit {
   for round in 0..<nr {
     // ——— θ 步 ———
-    let c = Array::new(capacity=5)
+    let c = Array::make(5, 0UL)
     for x in 0..<5 {
       c[x] = state[x] ^
         state[x + 5] ^
@@ -104,7 +106,7 @@ pub fn keccakF(state : Array[UInt64]) -> Unit {
         state[x + 15] ^
         state[x + 20]
     }
-    let d = Array::new(capacity=5)
+    let d = Array::make(5, 0UL)
     for x in 0..<5 {
       d[x] = c[(x + 4) % 5] ^ rotl(c[(x + 1) % 5], 1)
     }
@@ -115,7 +117,7 @@ pub fn keccakF(state : Array[UInt64]) -> Unit {
     }
 
     // ——— ρ 与 π 步 ———
-    let b = Array::new(capacity=25)
+    let b = Array::make(25, 0UL)
     for x in 0..<5 {
       for y in 0..<5 {
         let newx = y
@@ -131,7 +133,7 @@ pub fn keccakF(state : Array[UInt64]) -> Unit {
 
     // ——— χ 步 ———
     for y in 0..<5 {
-      let row = Array::new(capacity=5)
+      let row = Array::make(5, 0UL)
       for x in 0..<5 {
         row[x] = state[x + 5 * y]
       }
@@ -146,7 +148,8 @@ pub fn keccakF(state : Array[UInt64]) -> Unit {
   }
 }
 
-///| Keccak 消息填充函数（Keccak/SHA-3 专用）
+///|
+/// Keccak 消息填充函数（Keccak/SHA-3 专用）
 ///
 /// Parameters
 ///
@@ -175,7 +178,11 @@ pub fn keccakF(state : Array[UInt64]) -> Unit {
 /// ```
 /// let padded = keccakPad(msg, 136, 0x06)
 /// ```
-pub fn keccakPad(msg : ByteArray, rateBytes : Int, padByte : Byte) -> ByteArray {
+pub fn keccakPad(
+  msg : ByteArray,
+  rateBytes : Int32,
+  padByte : Byte,
+) -> ByteArray {
   // 填充规则：在 msg 后加 0x06，末尾字节 ^ 0x80，扩至整块
   let msgLen = msg.length()
   let padLen = rateBytes - msgLen % rateBytes
@@ -187,7 +194,8 @@ pub fn keccakPad(msg : ByteArray, rateBytes : Int, padByte : Byte) -> ByteArray 
   return padded
 }
 
-///| Keccak 海绵函数主流程（Sponge Construction）
+///|
+/// Keccak 海绵函数主流程（Sponge Construction）
 ///
 /// Parameters
 ///
@@ -224,9 +232,9 @@ pub fn keccakPad(msg : ByteArray, rateBytes : Int, padByte : Byte) -> ByteArray 
 /// ```
 pub fn keccakSponge(
   msg : ByteArray,
-  rateBytes : Int,
-  outLen : Int,
-  padByte : Byte
+  rateBytes : Int32,
+  outLen : Int32,
+  padByte : Byte,
 ) -> ByteArray {
   let state : Array[UInt64] = Array::make(25, 0)
   let padded = keccakPad(msg, rateBytes, padByte)
@@ -241,7 +249,7 @@ pub fn keccakSponge(
     }
     keccakF(state)
   }
-  let output : ByteArray = Array::new()
+  let output : ByteArray = Array()
   while output.length() < outLen {
     for i = 0; i < rateBytes / 8; i = i + 1 {
       let bytes = from_uint64(state[i])
@@ -272,13 +280,13 @@ pub fn sha3_512(msg : ByteArray) -> ByteArray {
 
 ///|
 /// SHAKE128：可变输出（比如 PRF、种子扩展）
-pub fn shake128(msg : ByteArray, outLen : Int) -> ByteArray {
+pub fn shake128(msg : ByteArray, outLen : Int32) -> ByteArray {
   keccakSponge(msg, 168, outLen, 0x1F)
 }
 
 ///|
 /// SHAKE256：可变输出（比如 PRF、KDF）
-pub fn shake256(msg : ByteArray, outLen : Int) -> ByteArray {
+pub fn shake256(msg : ByteArray, outLen : Int32) -> ByteArray {
   keccakSponge(msg, 136, outLen, 0x1F)
 }
 
@@ -298,11 +306,12 @@ pub fn j(s : ByteArray) -> ByteArray {
 /// G(c) := SHA3-512(c) = (a, b)
 pub fn g(c : ByteArray) -> (ByteArray, ByteArray) {
   let full = sha3_512(c)
-  full.split_at(31)
+  (full[:31].to_owned(), full[31:].to_owned())
 }
 
-///| PRF_η(s, b) := SHAKE256(s || b, 64 * η)
-pub fn prf(eta : Int, s : ByteArray, b : Byte) -> ByteArray {
+///|
+/// PRF_η(s, b) := SHAKE256(s || b, 64 * η)
+pub fn prf(eta : Int32, s : ByteArray, b : Byte) -> ByteArray {
   let input = s.copy()
   input.push(b)
   shake256(input, 64 * eta)
@@ -348,8 +357,8 @@ pub fn constant_time_compare(a : ByteArray, b : ByteArray) -> Bool {
 /// @param bytes 输入字节数组
 /// @param mod_value 模数值（如ML-KEM中的q=3329）
 /// @return 输出Int数组，每个元素是小于mod_value的整数
-pub fn bytes_to_ints(bytes : ByteArray, mod_value : Int) -> Array[Int] {
-  let result = Array::new()
+pub fn bytes_to_ints(bytes : ByteArray, mod_value : Int32) -> Array[Int32] {
+  let result = Array()
 
   // 确定我们能从输入字节中提取多少个整数
   // 在ML-KEM中，通常每12位表示一个多项式系数（因为q=3329需要最多12位）
@@ -371,7 +380,7 @@ pub fn bytes_to_ints(bytes : ByteArray, mod_value : Int) -> Array[Int] {
       let bits_remaining_in_byte = 8 - bit_pos
 
       // 确定要从当前字节中获取多少位
-      let bits_to_read = @math.minimum(
+      let bits_to_read = @cmp.minimum(
         bits_remaining_in_byte,
         bits_per_int - bits_collected,
       )
@@ -411,7 +420,7 @@ pub fn bytes_to_ints(bytes : ByteArray, mod_value : Int) -> Array[Int] {
 /// 计算整数的二进制位长度
 /// @param n 一个整数
 /// @return 表示该整数所需的最小位数
-pub fn bit_length(n : Int) -> Int {
+pub fn bit_length(n : Int32) -> Int32 {
   if n == 0 {
     return 1 // 0需要1位表示
   }
@@ -427,7 +436,7 @@ pub fn bit_length(n : Int) -> Int {
 ///|
 /// SHAKE128 初始化
 pub fn xof_init() -> XOF_CTX {
-  { state: Array::make(25, 0), buf: [], squeezed: false }
+  { state: Array::make(25, 0), buf: [], squeezed: false, }
 }
 
 ///|
@@ -444,9 +453,10 @@ pub fn absorb_block(ctx : XOF_CTX) -> Unit {
   ctx.buf.clear()
 }
 
-///| SHAKE128 挤出输出
-pub fn shake128_squeeze(ctx : XOF_CTX, out_len : Int) -> (XOF_CTX, ByteArray) {
-  if not(ctx.squeezed) {
+///|
+/// SHAKE128 挤出输出
+pub fn shake128_squeeze(ctx : XOF_CTX, out_len : Int32) -> (XOF_CTX, ByteArray) {
+  if !ctx.squeezed {
     // 填充：0x1F，最后一字节 ^ 0x80
     ctx.buf.push(0x1F)
     while ctx.buf.length() < 168 - 1 {
@@ -485,8 +495,8 @@ pub fn xof_absorb(ctx : XOF_CTX, data : ByteArray) -> XOF_CTX {
 }
 
 ///|
-pub fn xof_squeeze(ctx : XOF_CTX, out_len : Int) -> (XOF_CTX, ByteArray) {
-  if not(ctx.squeezed) {
+pub fn xof_squeeze(ctx : XOF_CTX, out_len : Int32) -> (XOF_CTX, ByteArray) {
+  if !ctx.squeezed {
     ctx.buf.push(0x1F)
     while ctx.buf.length() < 168 - 1 {
       ctx.buf.push(0x00)

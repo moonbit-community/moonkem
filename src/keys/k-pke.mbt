@@ -1,7 +1,8 @@
 ///|
-typealias Array[Byte] as ByteArray
+pub type ByteArray = Array[Byte]
 
-///| 基于格密码 KEM 的密钥对生成函数（Key Generation for Lattice-based KEM）
+///|
+/// 基于格密码 KEM 的密钥对生成函数（Key Generation for Lattice-based KEM）
 ///
 /// Parameters
 ///
@@ -100,7 +101,7 @@ pub fn k_keygen(d : ByteArray) -> (ByteArray, ByteArray) {
 }
 
 ///|
-fn byte_encode12(polys : Array[Array[Int]]) -> ByteArray {
+fn byte_encode12(polys : Array[Array[Int32]]) -> ByteArray {
   let out = []
   for poly in polys {
     let buf : Array[Byte] = Array::make(256 * 12 / 8, 0)
@@ -110,7 +111,8 @@ fn byte_encode12(polys : Array[Array[Int]]) -> ByteArray {
   out
 }
 
-///| 格密码 KEM 公钥加密函数（Encryption for Lattice-based KEM）  
+///|
+/// 格密码 KEM 公钥加密函数（Encryption for Lattice-based KEM）
 ///
 /// Parameters
 ///
@@ -252,7 +254,8 @@ pub fn encrypt(ek_PKE : ByteArray, m : ByteArray, r : ByteArray) -> ByteArray {
   c
 }
 
-///| 格密码 KEM 私钥解密函数（Decryption for Lattice-based KEM）  
+///|
+/// 格密码 KEM 私钥解密函数（Decryption for Lattice-based KEM）
 ///
 /// Parameters
 ///
