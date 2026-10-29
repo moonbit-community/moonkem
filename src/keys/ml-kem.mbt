@@ -1,4 +1,5 @@
-///| KEM 高层内部密钥对生成函数（Internal Key Generation for KEM）  
+///|
+/// KEM 高层内部密钥对生成函数（Internal Key Generation for KEM）
 ///
 /// Parameters
 ///
@@ -53,7 +54,8 @@ pub fn keygen_internal(d : ByteArray, z : ByteArray) -> (ByteArray, ByteArray) {
   (ek, dk)
 }
 
-///| KEM 内部封装函数（Internal Encapsulation for KEM）  
+///|
+/// KEM 内部封装函数（Internal Encapsulation for KEM）
 ///
 /// Parameters
 ///
@@ -76,15 +78,15 @@ pub fn keygen_internal(d : ByteArray, z : ByteArray) -> (ByteArray, ByteArray) {
 ///
 /// 此函数实现 KEM 协议中的内部封装过程：
 ///
-/// 1. **密钥派生与随机数生成**：  
-///    - 令 `input = m || H(ek)`，即消息与公钥哈希拼接  
-///    - 通过派生函数 `@kem.g(input)`，得到协商密钥 K 和随机数 r  
+/// 1. **密钥派生与随机数生成**：
+///    - 令 `input = m || H(ek)`，即消息与公钥哈希拼接
+///    - 通过派生函数 `@kem.g(input)`，得到协商密钥 K 和随机数 r
 ///
-/// 2. **加密消息**：  
-///    - 用扩展公钥 ek、明文 m、随机数 r 调用 `encrypt`，生成密文 c  
+/// 2. **加密消息**：
+///    - 用扩展公钥 ek、明文 m、随机数 r 调用 `encrypt`，生成密文 c
 ///
-/// 3. **返回 (K, c)**：  
-///    - 输出 (K, c)，即 KEM 封装输出  
+/// 3. **返回 (K, c)**：
+///    - 输出 (K, c)，即 KEM 封装输出
 ///
 /// 该流程保障了密钥协商的随机性和密文不可区分性，常用于 PQ-KEM/格密码标准协议中。
 ///
@@ -104,7 +106,8 @@ pub fn encaps_internal(ek : ByteArray, m : ByteArray) -> (ByteArray, ByteArray) 
   (k, c)
 }
 
-///| KEM 内部解封装函数（Internal Decapsulation for KEM）  
+///|
+/// KEM 内部解封装函数（Internal Decapsulation for KEM）
 ///
 /// Parameters
 ///
@@ -117,34 +120,34 @@ pub fn encaps_internal(ek : ByteArray, m : ByteArray) -> (ByteArray, ByteArray) 
 ///
 /// Errors
 ///
-/// - 无显式错误抛出，但依赖：  
-///   - 密钥、密文格式与协议参数一致  
-///   - @kem 相关函数（如 `decrypt`、`encrypt`、`g`、`j`、`constant_time_compare`）均已实现并安全  
+/// - 无显式错误抛出，但依赖：
+///   - 密钥、密文格式与协议参数一致
+///   - @kem 相关函数（如 `decrypt`、`encrypt`、`g`、`j`、`constant_time_compare`）均已实现并安全
 ///
 /// Description
 ///
 /// 实现 KEM 解封装（密钥恢复）过程，典型于 PQ-KEM/格密码协议，流程如下：
 ///
-/// 1. **扩展私钥分解**：  
-///    - dk_PKE    = dk 前 384k 字节（基础私钥）  
-///    - ek_PKE    = dk 紧随其后的 384k+32 字节（公钥副本）  
-///    - h         = dk 的 H(ek) 哈希字段  
-///    - z         = dk 的随机熵字段  
+/// 1. **扩展私钥分解**：
+///    - dk_PKE    = dk 前 384k 字节（基础私钥）
+///    - ek_PKE    = dk 紧随其后的 384k+32 字节（公钥副本）
+///    - h         = dk 的 H(ek) 哈希字段
+///    - z         = dk 的随机熵字段
 ///
-/// 2. **明文恢复**：  
-///    - 用私钥 dk_PKE 解密密文 c，得 m′  
+/// 2. **明文恢复**：
+///    - 用私钥 dk_PKE 解密密文 c，得 m′
 ///
-/// 3. **协商密钥候选与随机数**：  
-///    - k′, r′ = G(m′ ∥ h)，按 KEM 标准派生  
+/// 3. **协商密钥候选与随机数**：
+///    - k′, r′ = G(m′ ∥ h)，按 KEM 标准派生
 ///
-/// 4. **故障恢复密钥**：  
-///    - k̄ = J(z ∥ c)，若密文校验失败，则返回该密钥  
+/// 4. **故障恢复密钥**：
+///    - k̄ = J(z ∥ c)，若密文校验失败，则返回该密钥
 ///
-/// 5. **密文重加密一致性校验**：  
-///    - 用 ek_PKE、m′、r′ 重新加密，得 c′  
-///    - 常数时间比对 c, c′：  
-///       - 若一致，则返回 k′  
-///       - 不一致，则返回 k̄（抗选择密文攻击，确保密钥不可区分）  
+/// 5. **密文重加密一致性校验**：
+///    - 用 ek_PKE、m′、r′ 重新加密，得 c′
+///    - 常数时间比对 c, c′：
+///       - 若一致，则返回 k′
+///       - 不一致，则返回 k̄（抗选择密文攻击，确保密钥不可区分）
 ///
 /// Example
 /// ```
@@ -186,8 +189,8 @@ pub fn decaps_internal(dk : ByteArray, c : ByteArray) -> ByteArray {
 
 ///|
 /// 生成 n 字节的安全随机字节数组
-pub fn random_bytes(n : Int) -> ByteArray {
-  let rng = @random.Rand::new()
+pub fn random_bytes(n : Int32) -> ByteArray {
+  let rng = @random.Rand()
   let arr : Array[Byte] = Array::make(n, 0)
   for i = 0; i < n; i = i + 1 {
     arr[i] = rng.uint(limit=256).to_byte()

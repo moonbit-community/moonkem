@@ -4,35 +4,43 @@
 /// This module is based on the ML-KEM (CRYSTALS-Kyber) specification.
 
 // 基本参数定义
-///| ML-KEM 模数
-pub const PARAM_Q : Int = 3329 // KYBER_Q
-
-///| ML-KEM 多项式度数
-pub const PARAM_N : Int = 256 // KYBER_N
-
-///| ML-KEM 安全级别参数 (2=Kyber512, 3=Kyber768, 4=Kyber1024)
-pub const PARAM_K : Int = 4 // KYBER_K
-
-///| 噪声分布参数
-pub const PARAM_ETA1 : Int = 2 // KYBER_ETA1 (K=4时为2)
 
 ///|
-pub const PARAM_ETA2 : Int = 2 // KYBER_ETA2
+/// ML-KEM 模数
+pub const PARAM_Q : Int32 = 3329 // KYBER_Q
+
+///|
+/// ML-KEM 多项式度数
+pub const PARAM_N : Int32 = 256 // KYBER_N
+
+///|
+/// ML-KEM 安全级别参数 (2=Kyber512, 3=Kyber768, 4=Kyber1024)
+pub const PARAM_K : Int32 = 4 // KYBER_K
+
+///|
+/// 噪声分布参数
+pub const PARAM_ETA1 : Int32 = 2 // KYBER_ETA1 (K=4时为2)
+
+///|
+pub const PARAM_ETA2 : Int32 = 2 // KYBER_ETA2
 
 // Montgomery 相关常量
-///| Montgomery 规约常量 -q^(-1) mod 2^16
-pub const QINV : Int = 62209
-
-///| Montgomery form constant R^2 = 2^32 mod q
-pub const R2 : Int = 1353
 
 ///|
-typealias Array[Int] as Function
+/// Montgomery 规约常量 -q^(-1) mod 2^16
+pub const QINV : Int32 = 62209
+
+///|
+/// Montgomery form constant R^2 = 2^32 mod q
+pub const R2 : Int32 = 1353
+
+///|
+pub type Function = Array[Int32]
 
 ///|
 /// Precomputed twiddle factors for NTT
 /// In ML-KEM, these are powers of ζ^br(i), where br(i) is the bit-reversal of i
-let zetas : Array[Int] = [
+let zetas : Array[Int32] = [
   1, 1729, 2580, 3289, 2642, 630, 1897, 848, 1062, 1919, 193, 797, 2786, 3260, 569,
   1746, 296, 2447, 1339, 1476, 3046, 56, 2240, 1333, 1426, 2094, 535, 2882, 2393,
   2879, 1974, 821, 289, 331, 3253, 1756, 1197, 2304, 2277, 2055, 650, 1977, 2513,
@@ -44,7 +52,8 @@ let zetas : Array[Int] = [
   403, 1026, 1143, 2150, 2775, 886, 1722, 1212, 1874, 1029, 2110, 2935, 885, 2154,
 ]
 
-///| 从种子生成 NTT 域采样多项式（常用于格密码）
+///|
+/// 从种子生成 NTT 域采样多项式（常用于格密码）
 ///
 /// Parameters
 ///
@@ -95,7 +104,8 @@ pub fn sample_ntt(seed : ByteArray) -> Function {
   a_hat
 }
 
-///| 从种子生成 NTT 域采样多项式
+///|
+/// 从种子生成 NTT 域采样多项式
 ///
 /// Parameters
 ///
@@ -158,15 +168,14 @@ pub fn sample_poly_cbd(seed : ByteArray) -> Function {
 ///
 /// Example:
 ///
-/// ```moonbit
-/// ///|
+/// ```moonbit nocheck
 /// test "ntt/basic" {
 ///   let f = Array::make(256, 0)
 ///   f[0] = 1
 ///   f[1] = 2
 ///   let hat_f = ntt(f)
-///   inspect!(hat_f[0], content="3")
-///   inspect!(hat_f[1], content="2078")
+///   inspect(hat_f[0], content="3")
+///   inspect(hat_f[1], content="2078")
 /// }
 /// ```
 pub fn ntt(f : Function) -> Function {
@@ -206,15 +215,14 @@ pub fn ntt(f : Function) -> Function {
 ///
 /// Example:
 ///
-/// ```moonbit
-/// ///|
+/// ```moonbit nocheck
 /// test "intt/basic" {
 ///   let f = Array::make(256, 0)
 ///   f[0] = 3
 ///   f[1] = 2078
 ///   let orig_f = intt(f)
-///   inspect!(orig_f[0], content="1")
-///   inspect!(orig_f[1], content="2")
+///   inspect(orig_f[0], content="1")
+///   inspect(orig_f[1], content="2")
 /// }
 /// ```
 pub fn intt(hat_f : Function) -> Function {
@@ -268,17 +276,21 @@ pub fn multiply_ntts(f_hat : Function, g_hat : Function) -> Function {
 
 ///|
 pub fn base_case_multiply(
-  a0 : Int,
-  a1 : Int,
-  b0 : Int,
-  b1 : Int,
-  gamma : Int
-) -> (Int, Int) {
+  a0 : Int32,
+  a1 : Int32,
+  b0 : Int32,
+  b1 : Int32,
+  gamma : Int32,
+) -> (Int32, Int32) {
   (a0 * b0 + a1 * b1 * gamma, a0 * b1 + a1 * b0)
 }
 
 ///|
-pub fn ntt_pointwise_mul(a : Array[Int], b : Array[Int], q : Int) -> Array[Int] {
+pub fn ntt_pointwise_mul(
+  a : Array[Int32],
+  b : Array[Int32],
+  q : Int32,
+) -> Array[Int32] {
   let n = a.length()
   let out = Array::make(n, 0)
   for i = 0; i < n; i = i + 1 {

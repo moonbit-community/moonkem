@@ -1,0 +1,8 @@
+import {
+  "moonbitlang/core/random",
+  "xunyoyo/moonkem" @kem,
+}
+
+options(
+  "is-main": false,
+)

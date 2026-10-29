@@ -1,5 +1,7 @@
 # moonkem
 
+> 2026-10-29 compatibility audit: release validation is incomplete. Known seed-splitting and incremental-XOF failures block key generation tests; see [issue #3](https://github.com/moonbit-community/moonkem/issues/3). Passing arithmetic and hash vectors does not establish full ML-KEM conformance or security.
+
 moonkem 是一套用 Moonbit 语言实现的 [ML-KEM (CRYSTALS-Kyber)](https://csrc.nist.gov/projects/post-quantum-cryptography/selected-algorithms-2022) 格基密钥封装机制（KEM）库，支持高安全性、抗量子攻击的密钥协商、加密与解密。  
 本库结构清晰，注释详尽，适合科研、教学、工程实践和标准兼容性测试。
 

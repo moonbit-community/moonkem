@@ -5,15 +5,15 @@
 /// ML-KEM 算法所有安全级别共享的通用参数
 pub struct CommonParams {
   /// 多项式阶数 (n = 256)
-  n : Int
+  n : Int32
   /// 模数 (q = 3329)
-  q : Int
+  q : Int32
   /// 哈希函数输出长度(字节)
-  hash_bytes : Int
+  hash_bytes : Int32
   /// 共享密钥长度(字节)
-  ss_bytes : Int
+  ss_bytes : Int32
   /// 对称密钥长度(字节)
-  sym_bytes : Int
+  sym_bytes : Int32
 }
 
 ///|
@@ -22,23 +22,23 @@ pub struct SecurityParams {
   /// 安全级别名称
   name : String
   /// 安全强度(位)
-  security_bits : Int
+  security_bits : Int32
   /// 矩阵/向量维度 (k)
-  k : Int
+  k : Int32
   /// 噪声分布参数 (η, eta)
-  eta : Int
+  eta : Int32
   /// 公钥压缩参数 (du)
-  du : Int
+  du : Int32
   /// 密文压缩参数 (dv)
-  dv : Int
+  dv : Int32
   /// 种子字节长度
-  seed_bytes : Int
+  seed_bytes : Int32
   /// 公钥字节长度
-  public_key_bytes : Int
+  public_key_bytes : Int32
   /// 私钥字节长度
-  secret_key_bytes : Int
+  secret_key_bytes : Int32
   /// 密文字节长度
-  ciphertext_bytes : Int
+  ciphertext_bytes : Int32
 }
 
 ///|
@@ -100,7 +100,7 @@ pub let ml_kem_1024 : SecurityParams = {
 /// 返回指定安全级别的参数
 /// @param level 安全级别 (512, 768 或 1024)
 /// @return 对应安全级别的参数
-pub fn get_params(level : Int) -> SecurityParams {
+pub fn get_params(level : Int32) -> SecurityParams {
   if level == 512 {
     return ml_kem_512
   } else if level == 768 {
@@ -116,16 +116,16 @@ pub fn get_params(level : Int) -> SecurityParams {
 /// ML-KEM中NTT相关的常数参数
 pub struct NTTParams {
   /// 原根 ζ (zeta)
-  zeta : Int
+  zeta : Int32
   /// 二元多项式乘法的蒙哥马利参数
-  montgomery_r : Int
+  montgomery_r : Int32
   /// 蒙哥马利约简所需的参数
-  montgomery_r2 : Int
+  montgomery_r2 : Int32
   /// 模逆运算的常数: -q^(-1) mod 2^16
-  q_inv : Int
+  q_inv : Int32
   /// 模数分解: q = 2^d - epsilon, d=13
-  d : Int
-  epsilon : Int
+  d : Int32
+  epsilon : Int32
 }
 
 ///|
@@ -141,4 +141,4 @@ pub let ntt_params : NTTParams = {
 
 ///|
 /// 用于Barrett约简的参数常量
-pub let barrett_reduce_factor : Int = (1 << 26) / common_params.q
+pub let barrett_reduce_factor : Int32 = (1 << 26) / common_params.q

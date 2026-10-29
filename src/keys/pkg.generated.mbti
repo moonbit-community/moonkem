@@ -1,0 +1,34 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "xunyoyo/moonkem/keys"
+
+// Values
+pub fn check_pairwise_consistency(Array[Byte], Array[Byte]) -> Bool
+
+pub fn decaps_internal(Array[Byte], Array[Byte]) -> Array[Byte]
+
+pub fn decrypt(Array[Byte], Array[Byte]) -> Array[Byte]
+
+pub fn encaps_internal(Array[Byte], Array[Byte]) -> (Array[Byte], Array[Byte])
+
+pub fn encrypt(Array[Byte], Array[Byte], Array[Byte]) -> Array[Byte]
+
+pub fn k_keygen(Array[Byte]) -> (Array[Byte], Array[Byte])
+
+pub fn keygen_internal(Array[Byte], Array[Byte]) -> (Array[Byte], Array[Byte])
+
+pub fn ml_decaps(Array[Byte], Array[Byte]) -> Array[Byte]
+
+pub fn ml_encaps(Array[Byte]) -> (Array[Byte], Array[Byte])
+
+pub fn ml_keygen() -> (Array[Byte], Array[Byte])
+
+pub fn random_bytes(Int32) -> Array[Byte]
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+pub type ByteArray = Array[Byte]
+
+// Traits

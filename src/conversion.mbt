@@ -3,7 +3,7 @@ const Q = 3329
 
 ///|
 /// BitsToBytes: bit 数组 → byte 数组
-fn bits_to_bytes(bits : Array[Int], l : Int) -> ByteArray {
+fn bits_to_bytes(bits : Array[Int32], l : Int32) -> ByteArray {
   let b : Array[Byte] = Array::make(l, 0x00)
 
   // 遍历每一个 bit
@@ -19,7 +19,7 @@ fn bits_to_bytes(bits : Array[Int], l : Int) -> ByteArray {
 
 ///|
 /// BytesToBits: byte 数组 → bit 数组
-fn bytes_to_bits(b : ByteArray) -> Array[Int] {
+fn bytes_to_bits(b : ByteArray) -> Array[Int32] {
   let l = b.length()
   // 拷贝一份，下面要不断除 2
   let c = b.copy()
@@ -36,7 +36,7 @@ fn bytes_to_bits(b : ByteArray) -> Array[Int] {
 
 ///|
 /// Compress_d: ℤ_q → ℤ_{2^d}
-fn compress(x : Int, d : Int) -> Int {
+fn compress(x : Int32, d : Int32) -> Int32 {
   // 计算 y = ⌈ (2^d / q) * x ⌋ mod 2^d
   // 1) 先做左移：x * 2^d
   let numerator = x << d // 相当于 x * (1 << d)
@@ -47,9 +47,9 @@ fn compress(x : Int, d : Int) -> Int {
   y & mask // 等价于 y mod 2^d
 }
 
-///| 
+///|
 /// Decompress_d: ℤ_{2^d} → ℤ_q
-fn decompress(y : Int, d : Int) -> Int {
+fn decompress(y : Int32, d : Int32) -> Int32 {
   // numerator = q * y
   let numerator = y * Q // 整数运算
   // numerator / 2^d       // 整数除法自动地向下取整
@@ -58,7 +58,7 @@ fn decompress(y : Int, d : Int) -> Int {
 
 ///|
 /// ByteEncode_d: 整数数组 F[0..255] → ByteArray (长 32*d)
-pub fn byte_encode(f : Array[Int], d : Int) -> ByteArray {
+pub fn byte_encode(f : Array[Int32], d : Int32) -> ByteArray {
   let bits = Array::make(256 * d, 0)
 
   // 将每个 F[i] （模 m）拆成 d bit
@@ -76,7 +76,7 @@ pub fn byte_encode(f : Array[Int], d : Int) -> ByteArray {
 
 ///|
 /// ByteDecode_d: ByteArray → 整数数组 F[0..255]
-pub fn byte_decode(b : ByteArray, d : Int) -> Array[Int] {
+pub fn byte_decode(b : ByteArray, d : Int32) -> Array[Int32] {
   // 先拆位
   let bits = bytes_to_bits(b)
   let f = Array::make(256, 0)

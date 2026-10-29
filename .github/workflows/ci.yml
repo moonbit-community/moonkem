@@ -1,42 +1,54 @@
 name: Test
 on:
+  workflow_dispatch:
   pull_request:
   push:
-    branches:
-      - main
+    branches: [main]
 
-    paths-ignore:
-      - '**.md'
+permissions:
+  contents: read
+
+env:
+  MOON_WORK: "off"
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    name: Setup MoonBit
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain: [latest, nightly]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Moonbit
-        uses: hustcer/setup-moonbit@develop
-
-      - name: Check Moonbit Version
+      - uses: actions/checkout@v4
+      - uses: hustcer/setup-moonbit@develop
+        with:
+          version: ${{ matrix.toolchain }}
+      - name: Check all targets
         run: |
           moon version --all
           moon update
-          moon install
-
-      - name: Run tests with coverage
+          moon check --target all
+      - name: Verify independent hash vectors
         run: |
-          moon test --enable-coverage
-          
-      - name: Generate and upload coverage report
+          moon test src/hash_kat_test.mbt --target all
+          moon test src/hash_kat_test.mbt --target all --release
+      - name: Test debug and release
         run: |
-          moon coverage report \
-            -f coveralls \
-            -o codecov_report.json \
-            --service-name github \
-            --service-job-id "$GITHUB_RUN_ID" \
-            --service-pull-request "${{ github.event.pull_request.number }}" \
-            --send-to codecov
-        env:
-          CODECOV_TOKEN: c27014d8-2b06-48f4-8cee-bfc7c988ce12
+          timeout 90s moon test --target all
+          timeout 90s moon test --target all --release
+      - name: Verify generated interfaces and formatting
+        run: |
+          moon info --target all
+          moon fmt
+          git diff --exit-code
+      - name: Generate coverage
+        if: matrix.toolchain == 'latest'
+        run: |
+          moon test --target wasm-gc --enable-coverage
+          moon coverage report -f coveralls -o codecov_report.json
+      - uses: codecov/codecov-action@v5
+        if: matrix.toolchain == 'latest'
+        with:
+          files: codecov_report.json
+          token: ${{ secrets.CODECOV_TOKEN }}
